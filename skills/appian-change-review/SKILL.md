@@ -211,3 +211,43 @@ If an error occurs partway through a multi-step operation (e.g., creating a reco
 2. **Don't start over** — if the record type was created successfully, don't delete it and recreate; continue from where the error occurred
 3. **Fix forward** — address the specific failure and continue with the remaining steps
 4. **Re-verify the full result** — after recovering, verify the entire set of changes, not just the step that failed
+
+## Runtime Verification
+
+After creating or updating any interface, run `testInterface` to catch runtime errors that syntax validation misses.
+
+### Interface Checks
+
+After every `createInterface` or `updateInterface`, call `testInterface` and verify:
+
+1. `diagnostics.error` must be null — any value means a runtime rendering failure
+2. No `"-1"` values in rendered text — indicates a failed `.totalCount` or broken query
+3. Grid column data must contain strings or proper component objects — NOT serialized `"[@attributes=..."` text (indicates a link/complex object placed directly in a value slot)
+4. Filtered grids must return fewer rows than total record count — proves the filter parameter is working
+5. Alert/count cards must show non-negative integers
+
+If any check fails: identify the root cause from the rendered component tree, fix the expression, re-test until all checks pass, then proceed.
+
+### Site Checks
+
+After creating a site, GET it back and verify:
+- Each page has a valid `targetUuid` (retrieve the interface to confirm it exists)
+- Each `visibilityExpr` is a valid expression (e.g., `"true"`, `"=true"`, or a group membership check)
+
+### Process Model Checks
+
+After creating nodes, list all nodes and verify:
+- The connection graph forms a valid path from Start (node 1) to End (node 2) — every node must be reachable
+- XOR gateways have `decision.conditions` with valid `targetNodeId` values that reference existing nodes
+- No orphan nodes (nodes with no incoming or outgoing connections, except Start and End)
+
+### Cross-Object Wiring
+
+After building multiple objects that reference each other (e.g., process model + interface + record action), explicitly verify the connections:
+
+1. Record actions: retrieve the record type's actions and confirm `processModelUuid` points to an existing process model
+2. Start forms: retrieve the process model and confirm `startForm.interfaceUuid` points to an existing interface
+3. Summary views: retrieve the record type's views and confirm `interfaceExpression` references an existing interface via `rule!`
+4. Site pages: retrieve the site and confirm each page's `targetUuid` points to an existing interface
+
+Do not assume cross-references are correct because individual object creation succeeded — verify the wiring explicitly.

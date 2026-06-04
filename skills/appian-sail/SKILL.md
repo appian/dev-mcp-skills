@@ -317,16 +317,22 @@ Inside grid column `value` expressions, use `fv!row` to access the current row's
 
 ### Record Link in Grid
 
-Make grid values clickable to navigate to a record view:
+Make grid values clickable to navigate to a record view. **Do NOT put `a!recordLink()` directly in `a!gridColumn(value:)` or wrap it in `a!linkField()`** — both serialize to raw `@attributes` text at runtime.
+
+CORRECT pattern — wrap in `a!richTextDisplayField`:
 
 ```
 a!gridColumn(
-  label: "Title",
-  value: a!linkField(
-    links: a!recordLink(
-      label: fv!row[recordType!Case.fields.title],
-      recordType: recordType!Case,
-      identifier: fv!row[recordType!Case.fields.id]
+  label: "Name",
+  value: a!richTextDisplayField(
+    label: "name",
+    labelPosition: "COLLAPSED",
+    value: a!richTextItem(
+      text: fv!row['recordType!{RT_UUID}Name.fields.{FIELD_UUID}fieldName'],
+      link: a!recordLink(
+        recordType: 'recordType!{RT_UUID}Name',
+        identifier: fv!row['recordType!{RT_UUID}Name.fields.{PK_UUID}id']
+      )
     )
   )
 )
@@ -492,3 +498,58 @@ Reusable UI patterns with SAIL examples:
 
 **Icon aliases** — `references/rich-text-icon-aliases.md`
 Full list of icon names available for `a!richTextIcon()` and `a!stampField()`.
+
+## Platform Quirks
+
+Version-specific SAIL knowledge that prevents common validation and runtime errors.
+
+### 1. Record Type References
+
+Always use the full quoted UUID syntax: `'recordType!{uuid}Name'`. The shorthand `recordType!Name` does NOT work in expression validation. For field paths: `'recordType!{rt-uuid}Name.fields.{field-uuid}fieldName'`.
+
+### 2. Button Styles
+
+Valid `style` values: `"SOLID"`, `"OUTLINE"`, `"GHOST"`, `"LINK"`. Do NOT use `"PRIMARY"`, `"NORMAL"`, or `"SECONDARY"` — these cause validation errors.
+
+### 3. Grid Column Links
+
+NEVER put `a!recordLink()` directly in `a!gridColumn(value:)`. It serializes to raw `@attributes` text at runtime. Always wrap in `a!richTextDisplayField` (see "Record Link in Grid" above).
+
+### 4. Grid Filtering
+
+On `a!gridField` with record-type data, use parameter name `queryFilter` (not `filters`). The `filters` parameter passes syntax validation but is silently ignored at runtime. Note: `filters` IS correct on `a!queryRecordType`, NOT on `a!gridField`.
+
+### 5. Record Count Queries
+
+Use `fetchTotalCount: true` on `a!queryRecordType` to get accurate counts via `.totalCount`:
+
+```
+a!queryRecordType(
+  recordType: 'recordType!{UUID}Name',
+  filters: a!queryFilter(field: 'recordType!{UUID}Name.fields.{FIELD_UUID}field', operator: "=", value: targetValue),
+  pagingInfo: a!pagingInfo(startIndex: 1, batchSize: 1),
+  fetchTotalCount: true
+).totalCount
+```
+
+### 6. Grid Selection Style
+
+Do NOT use `selectionStyle: "NONE"` — not a valid value. Valid values: `"CHECKBOX"`, `"ROW_HIGHLIGHT"`, `"CHECKBOX_SUBTLE_HIGHLIGHT"`, `"SUBTLE_HIGHLIGHT"`. To disable selection, omit the parameter entirely.
+
+### 7. Site Page Visibility
+
+### 7. Site Page Visibility
+
+Standard visibility expressions work as expected. Use `"true"` or `"=true"` for always-visible pages. For conditional visibility, use expressions like `a!isUserMemberOfGroup(loggedInUser(), cons!GROUP_NAME)`.
+
+### 8. headerContentLayout Header Slot
+
+The `header` parameter of `a!headerContentLayout` requires `a!cardLayout` or `a!billboardLayout`. `a!sectionLayout` is rejected in the header slot.
+
+### 9. Process Model Node Types
+
+Standard gateway type IDs: XOR = `core.4`, AND = `core.2`, OR = `core.3`, Start = `core.0`, End = `core.1`.
+
+### 10. Query Syntax
+
+`a!queryRecordType` with shorthand `recordType!Name` fails in expression validation. Use the quoted full-path form: `'recordType!{uuid}Name'`. Sort uses: `a!sortInfo(field: ..., ascending: true())`.

@@ -10,7 +10,7 @@ skills/
     SKILL.md
 ```
 
-Each skill lives in its own directory under `skills/`, and the directory name must start with `appian-` (the setup script symlinks all `skills/appian-*/` into `~/.claude/skills/`). The skill's content goes in `SKILL.md`.
+Each skill lives in its own directory under `skills/`, and the directory name must start with `appian-`. The skill's content goes in `SKILL.md`.
 
 ## Required frontmatter
 
@@ -37,17 +37,17 @@ description: "Create and modify Appian record types including fields, relationsh
 ## Adding or editing a skill
 
 1. Create or edit `skills/appian-<topic>/SKILL.md`.
-2. Re-run `./setup.sh` from the repo root if you added a new skill — it symlinks the new directory into `~/.claude/skills/`. Editing an existing skill takes effect immediately (the symlink already points at the file).
-3. Open a merge request. There's no automated quality gate; review is by reading.
+2. Follow the installation instructions in the top-level README to make the skill available to your IDE.
+3. Open a pull request. There's no automated quality gate; review is by reading.
 
 ## Testing a skill locally before submitting
 
-Skills are loaded by Claude Code on demand based on their `description` matching the current task. To verify your new or edited skill loads and helps:
+Skills are loaded by AI assistants on demand based on their `description` matching the current task. To verify your new or edited skill loads and helps:
 
-1. From the repo root, re-run `./setup.sh` (only required for *new* skills — re-creates the symlink).
-2. Fully quit any running Claude Code sessions and relaunch via `./claude-appian`. Skills are read at startup; existing sessions won't see new ones.
-3. In Claude Code, ask a prompt that should trigger your skill (e.g., for `appian-record-types`: "create a Customer record type with fields ID, name, email"). Watch for Claude referencing your skill's content — it'll often paraphrase or quote it.
-4. If Claude doesn't seem to have loaded your skill, check that the `description` field is concrete enough to match the prompt. Vague descriptions get ignored.
+1. Install the skill into your IDE following the top-level README instructions.
+2. Restart your AI assistant session (skills are typically read at startup).
+3. Ask a prompt that should trigger your skill (e.g., for `appian-record-types`: "create a Customer record type with fields ID, name, email"). Watch for the AI referencing your skill's content — it'll often paraphrase or quote it.
+4. If the AI doesn't seem to have loaded your skill, check that the `description` field is concrete enough to match the prompt. Vague descriptions get ignored.
 
 ## When *not* to write a skill
 

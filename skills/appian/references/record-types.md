@@ -85,8 +85,8 @@ Load `references/field-types.md` for the complete field type reference.
 
 ## Naming Conventions
 
-- **Record type name**: Title Case, singular — `Case`, `Customer`, `Letter of Authorization`
-- **Plural name**: Title Case, plural — `Cases`, `Customers`, `Letters of Authorization`
+- **Record type name**: `PREFIX EntityName` in Title Case, singular — `CM Case`, `CM Customer`, `CM Letter of Authorization`
+- **Plural name**: Title Case, plural, no prefix — `Cases`, `Customers`, `Letters of Authorization`
 - **Table name**: UPPER_SNAKE_CASE, singular — `CASE`, `CUSTOMER`, `LETTER_OF_AUTHORIZATION`
 - **Field names**: snake_case — `case_id`, `created_at`, `assigned_username`
 - **Primary key**: `[table_name_lowercase]_id` — table CASE → `case_id`

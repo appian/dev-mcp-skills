@@ -58,7 +58,7 @@ appian apps get $APP | jq '.defaultObjects'
 ## Application Prefix Convention
 
 The prefix propagates to all objects in the application:
-- Record types: `Case`, `Customer` (no prefix on record type names — they use Title Case)
+- Record types: `CM Case`, `CM Customer` (prefix + Title Case singular; plural name has no prefix)
 - Interfaces: `CM_Dashboard`, `CM_CaseForm`
 - Expression rules: `CM_GetFullName`, `CM_IsEligible`
 - Process models: `CM Create Case`, `CM Reassign Case`

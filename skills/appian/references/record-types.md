@@ -27,6 +27,18 @@ echo '{"fieldName":"status","fieldType":"TEXT","length":50}' | appian rt fields 
 # List relationships
 appian rt relationships list <uuid>
 
+# Add a relationship
+echo '{"relationshipName":"department","relationshipType":"MANY_TO_ONE","sourceRecordTypeFieldUuid":"<fk-field-uuid>","targetRecordTypeFieldUuid":"<pk-field-uuid>","targetRecordTypeUuid":"<target-rt-uuid>"}' | appian rt relationships add <rt-uuid>
+
+# Insert record data (CSV via stdin or --file, PK column optional for auto-increment)
+echo "value
+Engineering
+Finance
+Sales" | appian records insert <rt-uuid>
+
+# List record data
+appian records list <rt-uuid>
+
 # List views
 appian rt views list <uuid>
 

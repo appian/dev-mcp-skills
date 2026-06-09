@@ -40,14 +40,13 @@ Note: Creating a process model requires `--app $APP` (to associate with the appl
   "processVariables": [
     {"name": "record", "type": "<typeReference from appian rt get>", "isParameter": true, "isRequired": false},
     {"name": "isUpdate", "type": "BOOLEAN", "isParameter": true},
-    {"name": "cancel", "type": "BOOLEAN"}
+    {"name": "cancel", "type": "BOOLEAN", "isParameter": true}
   ],
   "nodes": [
     {"id": 1, "type": "core.0", "name": "Start", "coordinates": [50, 200], "connections": [2]},
-    {"id": 2, "type": "internal.17", "name": "Case Form", "coordinates": [250, 200], "connections": [3]},
-    {"id": 3, "type": "core.4", "name": "Was Cancelled?", "coordinates": [450, 200], "connections": [4, 5]},
-    {"id": 4, "type": "internal3.write_records_to_source_23r3", "name": "Write Case", "coordinates": [650, 100], "connections": [5]},
-    {"id": 5, "type": "core.1", "name": "End", "coordinates": [850, 200], "connections": []}
+    {"id": 2, "type": "core.4", "name": "Was Cancelled?", "coordinates": [250, 200], "connections": [3, 4]},
+    {"id": 3, "type": "internal3.write_records_to_source_23r3", "name": "Write Case", "coordinates": [450, 100], "connections": [4]},
+    {"id": 4, "type": "core.1", "name": "End", "coordinates": [650, 200], "connections": []}
   ],
   "startForm": {
     "interfaceUuid": "<interface-uuid>",
@@ -111,15 +110,22 @@ Load `references/node-types.md` for the complete reference with all schema IDs a
 Start(1) → Script(2) → End(3)
 ```
 
-**Form submission** (Start → Form → Write → End):
+**Start form with write** (Start → Write → End):
+When `startForm` is configured, the form is presented at process initiation and populates process variables directly. The process is unattended after that — no User Input Task needed.
 ```
-Start(1) → UserInput(2) → WriteRecords(3) → End(4)
+Start(1) → WriteRecords(2) → End(3)
 ```
 
-**Form with cancel** (Start → Form → XOR → Write/Skip → End):
+**Start form with cancel** (Start → XOR → Write/End):
 ```
-Start(1) → UserInput(2) → XOR(3) → WriteRecords(4) → End(5)
-                                   → End(5)  [cancel path]
+Start(1) → XOR(2) → WriteRecords(3) → End(4)
+                   → End(4)  [cancel path]
+```
+
+**Mid-process form** (attended task within a running process):
+Use User Input Task when collecting input mid-process from an assigned user.
+```
+Start(1) → Script(2) → UserInput(3) → WriteRecords(4) → End(5)
 ```
 
 ### Canvas Layout

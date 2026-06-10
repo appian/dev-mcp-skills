@@ -40,9 +40,9 @@ Load `references/field-types.md` for the complete field type reference with cons
 
 ### Naming Conventions
 
-- **Record type name**: Title Case, singular (e.g., "Case", "Customer", "Letter of Authorization")
-- **Plural name**: Title Case, plural (e.g., "Cases", "Customers", "Letters of Authorization")
-- **Table name**: UPPER_SNAKE_CASE, singular (e.g., `CASE`, `CUSTOMER`, `LETTER_OF_AUTHORIZATION`)
+- **Record type name**: Application prefix followed by space, then Title Case singular (e.g., "ACME Case", "ACME Customer", "OC Vehicle"). Always include the prefix to avoid naming collisions across applications.
+- **Plural name**: Application prefix followed by space, then Title Case plural (e.g., "ACME Cases", "ACME Customers", "OC Vehicles")
+- **Table name**: UPPER_SNAKE_CASE, singular (e.g., `CASE`, `CUSTOMER`, `LETTER_OF_AUTHORIZATION`). No prefix on table names.
 - **Field names**: snake_case (e.g., `case_id`, `created_at`, `assigned_username`)
 - **Primary key**: `[table_name_lowercase]_id` (e.g., table CASE → `case_id`)
 - **Foreign keys**: `[referenced_table_lowercase]_id` (e.g., referencing CASE_STATUS → `case_status_id`)

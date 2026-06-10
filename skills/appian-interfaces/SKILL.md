@@ -224,6 +224,9 @@ When setting or updating a SAIL expression on an interface:
 - **Not passing `isUpdate` correctly** — the process model must pass `true` for edit and `false` for create; if the form always shows "New [Entity]", check that the process model is setting this input
 - **Putting too many fields on one form** — if a form has more than 15-20 fields, consider splitting into sections with collapsible areas or using a wizard layout
 - **Forgetting to scope dashboard queries** — dashboard grids should filter to relevant records (e.g., current user's cases, open items) rather than showing all records unfiltered
+- **Using a record-typed input and indexing fields in API-submitted forms** — the expression validator evaluates the interface at save time with null inputs. Indexing a null record-typed `ri!` with field references (`ri!record['recordType!{uuid}...']`) causes "Invalid index (1) for list: valid range is empty". Use individual scalar inputs instead (one `ri!` per field) and construct the record object in the process model's Write Records node. This is an API-specific limitation - Appian Designer's expression editor does not have this issue.
+- **Integer inputs defaulting to 0 in dropdowns** — Integer rule inputs default to `0`, not `null`. When bound to a `a!dropdownField` `value`, this causes "value must be present in choiceValues". Fix: `value: if(ri!fieldId = 0, null, ri!fieldId)`.
+- **Record view expressions can't index `rv!record` via API** — similar to form interfaces, record view expressions submitted via the API fail when indexing `rv!record` with field references because the validator evaluates with a null record variable. Use simple placeholder content for API-created record views and edit the full field-reference expressions in Appian Designer.
 
 ## UX Pattern Reference
 

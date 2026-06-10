@@ -246,6 +246,7 @@ To add or modify variables, retrieve the current variable list, make changes, an
 - **Wrong variable type for record data** — when a variable holds record data, set `recordTypeUuid` to the record type's UUID so Appian knows the data shape
 - **Forgetting cancel handling** — forms with a Cancel button need an XOR gateway after the User Input Task to check the cancel variable and skip the write step
 - **Using plain-text record type names in expressions** — Script Task `outputVariables`, `expressionBody`, and XOR `condition` expressions submitted through the API must use UUID-qualified record type references wrapped in single quotes: `'recordType!{rtUuid}Name.fields.{fieldUuid}fieldName'`. Plain-text names like `recordType!Board Committee Submission.fields.status` fail at parse time, especially when names contain spaces. Retrieve UUIDs from `createRecordType`/`getRecordType` and `listRecordTypeFields`.
+- **Forgetting `assignment.attended` on Write Records nodes** — the Write Records node (`internal3.write_records_to_source_23r3`) requires `assignment: { attended: false }` to be explicitly set. Without it, creation fails with "assignment.attended is required for node type 'Write Records and Related Records'". Always include this in the node definition.
 
 ## Expression and SAIL Guidance
 

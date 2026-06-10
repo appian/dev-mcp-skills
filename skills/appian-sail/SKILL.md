@@ -468,6 +468,26 @@ a!localVariables(
 - Referencing `fv!item` outside of `a!forEach()` — function variables are scoped to their parent function
 - Putting `a!columnLayout()` outside of `a!columnsLayout()` — columns must be direct children of a columns layout
 - Using `a!forEach()` to render components but forgetting it returns a list — the parent parameter must accept a list
+- **Using a record-typed `ri!` input and indexing it with field references in forms submitted via API** — the expression validator evaluates `ri!record['recordType!{uuid}...fields...']` at save time with a null record, causing "Invalid index (1) for list: valid range is empty". Instead, use individual scalar inputs (one `ri!` per field: `ri!make`, `ri!model`, etc.) and construct the record in the process model's Write Records node. Reserve record-typed inputs for interfaces edited in Appian Designer where the validator has runtime context.
+- **Integer dropdown value defaulting to 0** — Integer rule inputs default to `0`, not `null`. When used as `value` in `a!dropdownField`, the dropdown throws "value must be present in choiceValues" because `0` isn't a valid choice. Use `value: if(ri!fieldId = 0, null, ri!fieldId)` to coerce zero to null for dropdown compatibility.
+- **Using `a!startProcessLink` with `cons!` when Process Model constants can't be created via API** — the MCP constant tool doesn't support the Process Model type. Instead, pass the process model UUID directly as a string: `a!startProcessLink(processModel: "uuid-here")`. This works because Appian coerces the UUID string to a process model reference at runtime.
+- **Curly braces in string literals inside `a!startProcessLink`** — placing a UUID with curly braces (e.g., `"{uuid}"`) inside a double-quoted string in some expression contexts can cause "Unmatched close brace" parse errors. The single-quoted format `'recordType!{uuid}...'` works for record type references, but bare `{` in double-quoted string parameters of link functions can confuse the expression parser. Test by placing the UUID in a local variable first if you encounter this.
+
+## Record Actions on Grids
+
+Use `recordActions` on `a!gridField` to surface record list actions directly on a grid. This is the cleanest way to let users create records from a grid page:
+
+```
+a!gridField(
+  data: a!recordData(recordType: 'recordType!{rtUuid}Name'),
+  columns: { ... },
+  recordActions: a!recordActionItem(
+    action: 'recordType!{rtUuid}Name.actions.{actionUuid}actionKey'
+  )
+)
+```
+
+The action UUID and key come from the `addRecordTypeAction` response. This renders a button above the grid that launches the process model form inline.
 
 ## When You Need More
 

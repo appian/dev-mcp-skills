@@ -156,6 +156,14 @@ This is the complete dependency graph including both tooled and untooled object 
 19. Sites
 20. Documents
 
+### Partially Tooled Limitations
+
+Some tooled object types have limitations that require workarounds:
+
+- **Constants of type Process Model** — the MCP constant tool supports TEXT, NUMBER, INTEGER, BOOLEAN, DATE, DATETIME, TIME, USER, GROUP, FOLDER, DOCUMENT but NOT Process Model. To reference a process model in `a!startProcessLink`, pass the process model UUID directly as a string instead of using a constant: `a!startProcessLink(processModel: "uuid-here")`. Alternatively, flag Process Model constants as a manual step.
+- **Record-typed interface inputs** — the expression validator evaluates interfaces at save time with null inputs. Indexing a null record-typed input causes validation errors. Use individual scalar inputs (one per field) for forms submitted via the API, and construct the record object in the process model's Write Records node instead.
+- **Record view expressions with `rv!record` field references** — similar to interface forms, record view expressions can't index `rv!record` with field references via the API. Use simple placeholder content and note that the developer must edit the view in Appian Designer to add field-level display.
+
 ### How to Handle Manual Steps
 
 When the plan includes untooled object types:

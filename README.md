@@ -1,6 +1,6 @@
 # Appian MCP Skills
 
-Skills that teach AI coding assistants how to build Appian applications using the [Appian MCP tools](https://docs.appian.com/suite/help/latest/mcp-tools.html). Install these alongside your MCP-enabled IDE (Claude Code, Cursor, Windsurf, etc.) to get better first-pass results and fewer retry loops.
+Skills that teach AI coding assistants how to build Appian applications using the [Appian MCP tools](https://docs.appian.com/suite/help/latest/devmcp.html). Install these alongside your MCP-enabled IDE (Claude Code, Cursor, Windsurf, etc.) to get better first-pass results and fewer retry loops.
 
 ## What are skills?
 

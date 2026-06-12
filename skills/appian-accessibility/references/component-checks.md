@@ -13,6 +13,7 @@ Applies to: `a!textField`, `a!paragraphField`, `a!integerField`, `a!decimalField
 | INPUT-DUPLICATES | If same `label` appears multiple times, `accessibilityText` provides context |
 | REQUIRED-PARAM | If the field is required, `required: true` is set |
 | VALIDATION-OOTB | Errors use `validations`/`validationMessage` parameters |
+| VALIDATION-INCLUDES-NAME | Validation/error message text includes the input's `label` value |
 | INPUT-INSTRUCTIONS | Format/range guidance uses the `instructions` parameter |
 
 ## a!textField (additional)
@@ -148,12 +149,19 @@ Applies to: `a!barChartField`, `a!columnChartField`, `a!lineChartField`, `a!pieC
 | Rule ID | What to Check |
 |---|---|
 | FORM-FOCUS | If important info precedes inputs, `focusOnFirstInput: false` or `skipAutoFocus: true` |
+| FORM-REQUIRED-LEGEND | If any inputs have `required: true`, a visible legend ("Required fields are marked with an asterisk (*)") appears before the first input |
 
 ## a!stampField
 
 | Rule ID | What to Check |
 |---|---|
 | STAMP-NO-TOOLTIP | `tooltip` and `helpTooltip` are null or absent |
+
+## a!signatureField
+
+| Rule ID | What to Check |
+|---|---|
+| SIGNATURE-ALTERNATIVE | An alternative keyboard-accessible method (checkbox, dropdown, etc.) must be provided alongside the signature component |
 
 ## a!dateTimeField
 
@@ -166,6 +174,30 @@ Applies to: `a!barChartField`, `a!columnChartField`, `a!lineChartField`, `a!pieC
 | Rule ID | What to Check |
 |---|---|
 | DYNAMIC-MESSAGE | `announceBehavior` parameter is set appropriately |
+
+## Dynamic Content (showWhen-driven visibility)
+
+| Rule ID | What to Check |
+|---|---|
+| DYNAMIC-CONTENT-ORDER | Content revealed via `showWhen` appears in tab order AFTER the triggering control, OR the trigger has `accessibilityText` warning of positioning, OR `a!messageBanner` notifies after reveal (flag for review) |
+
+## Pagination Links (a!richTextIcon / icon links)
+
+| Rule ID | What to Check |
+|---|---|
+| PAGINATION-INACTIVE-SILENT | When pagination links are inactive/non-applicable, `accessibilityText`, `altText`, and `caption` must all be null — inactive controls must be invisible to assistive tech |
+
+## Simulated Grids (columnsLayout / sideBySideLayout mimicking tabular data)
+
+| Rule ID | What to Check |
+|---|---|
+| SIMULATED-GRID-A11Y | Each "cell" in a layout-based grid must have `accessibilityText` indicating the column header and row header text (flag for review) |
+
+## a!imageField, a!documentImage
+
+| Rule ID | What to Check |
+|---|---|
+| IMAGE-OF-TEXT | Images must not contain embedded text unless they are logos or use fonts that cannot be rendered by a browser (flag for review) |
 
 ## Breadcrumbs (a!richTextDisplayField)
 

@@ -56,7 +56,7 @@ Normalize to at least Third Normal Form (3NF) for all transactional tables. Appi
 
 ### When to Normalize
 
-- Enumerated values with 3+ options → extract to a reference table (always, no exceptions)
+- **Any field with a fixed set of values (3+) MUST be a reference table** — not a TEXT field. This includes roles, statuses, categories, types, priorities, departments, or any field that will be a dropdown/picker in the UI. Create the reference record type with an INTEGER PK and a TEXT name/label field, seed it with data, then use an INTEGER foreign key on the main entity.
 - Multi-valued attributes → extract to a junction table (4NF)
 - Repeating groups of fields → extract to a child entity with a foreign key back to the parent
 - Fields that depend on non-key attributes → separate into their own table

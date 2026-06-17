@@ -27,8 +27,11 @@ Whole number value without decimals.
 
 - **Constraints**: None specific. No decimal component.
 - **When to use**: Primary keys (with `isPrimaryKey: true`), foreign keys, counts, quantities, and any whole-number value. Every record type must have exactly one INTEGER primary key field.
-- **Naming**: Primary keys use `[table_name_lowercase]_id`. Foreign keys use `[referenced_table_lowercase]_id`.
-- **Example**: `fieldName: "case_id", fieldType: "INTEGER", isPrimaryKey: true`
+- **Naming**: 
+  - Record type field: Primary keys = `id`, Foreign keys = `[referencedEntity]Id` (camelCase, e.g., `statusId`)
+  - Database column: Primary keys = `ID`, Foreign keys = `[REFERENCED_TABLE]_ID` (UPPER_SNAKE_CASE, e.g., `STATUS_ID`)
+- **Example**: `fieldName: "id", fieldType: "INTEGER", isPrimaryKey: true`
+- **Example FK**: `fieldName: "statusId", fieldType: "INTEGER"` → Database column: `STATUS_ID`
 
 ### DECIMAL
 
@@ -79,8 +82,12 @@ Reference to an Appian user.
 
 - **Constraints**: None specific. Stores an Appian username.
 - **When to use**: Assigned users, created-by/modified-by audit fields, and any field that references an Appian platform user. Never create a separate record type to represent users — use USER fields that reference Appian's built-in user system.
-- **Naming**: Use `_username` suffix for user reference fields (e.g., `assigned_username`, `created_by_username`).
-- **Example**: `fieldName: "assigned_username", fieldType: "USER"`
+- **Naming**: 
+  - Record type field: camelCase with context (e.g., `assignedTo`, `createdBy`, `modifiedBy`)
+  - Database column: UPPER_SNAKE_CASE (e.g., `ASSIGNED_TO`, `CREATED_BY`, `MODIFIED_BY`)
+  - Do NOT use `Username` suffix on record type fields
+- **Standard audit fields**: `createdBy`, `modifiedBy` (NOT `createdByUsername`, `modifiedByUsername`)
+- **Example**: `fieldName: "createdBy", fieldType: "USER"` → Database column: `CREATED_BY`
 
 ### GROUP
 

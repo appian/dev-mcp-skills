@@ -5,16 +5,7 @@ description: "Build and modify Appian applications. Covers applications, record 
 
 ## Tool Surface
 
-Appian objects are created and managed through one of two tool surfaces. Check which is available to you:
-
-### Option A: Appian CLI
-If the `appian` command is on your PATH, you have the Appian CLI — a noun-verb bash tool. Run `appian --help` to discover resources and actions. Load `references/tools-cli.md` for input/output patterns, conventions, and gotchas that help doesn't cover well.
-
-### Option B: Appian MCP Tools
-If your tool list includes Appian design object tools (e.g., `createApplication`, `createRecordType`, `listInterfaces`, `getProcessModel`), you have the Appian MCP server. The server name varies — look for these characteristic tool names regardless of prefix. The tools are self-describing — inspect their parameter schemas directly. Load `references/tools-mcp.md` for usage patterns and conventions.
-
-### Which to use
-Use whichever is available. If both are available, prefer MCP tools (structured input/output, no bash escaping concerns). Never mix — pick one surface and use it consistently for the entire task.
+Appian objects are created and managed through MCP tools. If your tool list includes Appian design object tools (e.g., `createApplication`, `createRecordType`, `listInterfaces`, `getProcessModel`), you have the Appian MCP server. The server name varies — look for these characteristic tool names regardless of prefix. The tools are self-describing — inspect their parameter schemas directly. Load `references/tools-mcp.md` for usage patterns and conventions.
 
 ---
 
@@ -24,8 +15,7 @@ Each resource has a dedicated reference file with JSON schemas, design conventio
 
 | When to load | Reference File |
 |---|---|
-| You have the Appian CLI available (`appian` command on PATH) and need input/output patterns | `references/tools-cli.md` |
-| You have Appian MCP tools available (e.g., `createApplication`, `createRecordType` in tool list) and need usage patterns | `references/tools-mcp.md` |
+| You need usage patterns for the Appian MCP tools | `references/tools-mcp.md` |
 | Creating or managing an application | `references/applications.md` |
 | Creating/modifying record types, fields, relationships, views, or actions | `references/record-types.md` |
 | Requirements mention filtering, searching, faceted navigation, or record list dropdowns | `references/record-type-user-filters.md` |
@@ -49,7 +39,7 @@ Each resource has a dedicated reference file with JSON schemas, design conventio
 ### Loading Strategy
 
 For a typical task:
-1. Determine your tool surface: check if Appian MCP tools are available (e.g., `createApplication`, `createRecordType` in your tool list) or if the `appian` CLI is on PATH. Load the matching tool reference for patterns and conventions. For the CLI, also use `appian --help` and `appian <resource> --help` to discover specific commands.
+1. Load `references/tools-mcp.md` for tool usage patterns and non-obvious behaviors
 2. Load the primary resource reference (e.g., `references/record-types.md` for record type work)
 3. Load supplementary references as needed (e.g., `references/data-modeling.md` for schema design, `references/field-types.md` for type constraints)
 4. Load `references/sail.md` when writing SAIL expressions for interfaces

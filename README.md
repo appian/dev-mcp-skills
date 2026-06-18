@@ -1,93 +1,72 @@
 # Appian MCP Skills
 
-Skills that teach AI coding assistants how to build Appian applications using the [Appian MCP tools](https://docs.appian.com/suite/help/latest/devmcp.html). Install these alongside your MCP-enabled IDE (Claude Code, Cursor, Windsurf, etc.) to get better first-pass results and fewer retry loops.
+Skills that teach AI coding assistants how to build Appian applications using the [Appian MCP tools](https://docs.appian.com/suite/help/latest/devmcp.html). Install alongside your MCP-enabled IDE to get better first-pass results and fewer retry loops.
 
 ## What are skills?
 
 Skills are markdown files that provide domain-specific knowledge to AI assistants. They describe Appian platform patterns, constraints, and best practices so the model doesn't have to learn them through trial and error during your session.
 
+## Structure
+
+```
+skills/
+  appian/
+    SKILL.md                  ← Entry point (description, reference map, dependency order)
+    references/
+      tools-mcp.md            ← MCP tool patterns and non-obvious behaviors
+      record-types.md         ← Record type schemas, fields, relationships, actions
+      data-modeling.md        ← Entity design, normalization, naming conventions
+      interfaces.md           ← SAIL forms, dashboards, summary views
+      process-models.md       ← Nodes, variables, start forms, flow patterns
+      sail.md                 ← Components, layouts, data binding, grids
+      ...                     ← Additional reference files
+```
+
+The skill has a single entry point (`SKILL.md`) with a resource reference map that tells the assistant which reference file to load for any given task. Reference files contain domain knowledge — schemas, conventions, patterns, and pitfalls — without tool-specific syntax.
+
 ## Installation
+
+### Kiro
+
+Add as a workspace skill in `.kiro/skills/`.
 
 ### Claude Code
 
 ```bash
-# Clone into your CLAUDE.md skills directory
 git clone https://github.com/appian/dev-mcp-skills.git ~/.claude/skills/appian
-
-# Or symlink individual skills
-ln -s /path/to/dev-mcp-skills/skills/appian-sail ~/.claude/skills/appian-sail
 ```
 
 ### Cursor
 
-Add the skills as project rules. In your project's `.cursor/rules/` directory:
+Add as project rules:
 
 ```bash
 git clone https://github.com/appian/dev-mcp-skills.git .cursor/rules/appian
 ```
 
-Or symlink individual skills into `.cursor/rules/`.
-
-### VS Code (Copilot)
-
-Add the skills as workspace instructions. Clone into `.github/copilot-instructions/`:
-
-```bash
-git clone https://github.com/appian/dev-mcp-skills.git .github/copilot-instructions/appian
-```
-
 ### Other IDEs
 
-Copy the `skills/` directory contents into wherever your IDE loads context/instruction files from. Each `appian-*/` folder is self-contained.
+Copy `skills/appian/` into wherever your IDE loads context/instruction files from. The directory is self-contained.
 
-## Skills Included
+## Usage
 
-| Skill | Purpose |
-|-------|---------|
-| `appian-change-planning` | Discover what exists, determine scope, order dependencies |
-| `appian-change-review` | Verify changes landed correctly, detect discrepancies, runtime checks |
-| `appian-data-modeling` | Entity design, normalization, relationships, naming conventions |
-| `appian-expression-rules` | Rule inputs, expression bodies, when to use rules vs. inline |
-| `appian-expressions` | Syntax, operators, type system, object references, common functions |
-| `appian-interfaces` | Interface lifecycle, dashboard/form design, inputs |
-| `appian-process-models` | Nodes, variables, connections, start forms, flow patterns |
-| `appian-record-types` | Fields, relationships, source configuration, database tables |
-| `appian-sail` | Components, layouts, data binding, grids, links, platform quirks |
-| `appian-security` | Group hierarchies, role-based access, object permissions |
-| `appian-sites` | Site creation, pages, navigation, visibility |
-| `appian-supporting-objects` | Constants, groups, folders, documents |
-| `appian-web-apis` | HTTP endpoints, URL aliases, expression bodies |
+The AI loads the skill on demand based on the task — you don't need to reference it explicitly. The skill covers:
 
-## Skill Structure
-
-Each skill is a directory containing:
-
-```
-appian-<topic>/
-  SKILL.md              ← Main content (YAML frontmatter + markdown)
-  references/           ← Optional deep-reference material (loaded on demand)
-    *.md
-```
-
-The `SKILL.md` frontmatter declares the skill name and a description that tells the AI when to load it:
-
-```yaml
----
-name: "appian-sail"
-description: "Write SAIL code for Appian interfaces — components, layouts, ..."
----
-```
-
-## Usage Tips
-
-- Install all 13 skills for general Appian development
-- The AI loads skills on demand based on the task — you don't need to reference them explicitly
-- Skills are additive — they improve outcomes but don't change what tools are available
-- If the AI still gets something wrong, that's a candidate for a new skill contribution
+- Applications, record types, fields, relationships
+- Interfaces (forms, dashboards, summary views)
+- Expression rules and SAIL expressions
+- Process models (nodes, variables, start forms)
+- Sites, Web APIs, constants, groups, folders, documents
+- Data modeling, security, change planning, change review
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how to propose new skills or improve existing ones.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to propose improvements.
+
+Skills are domain knowledge, not tool documentation. Good contributions:
+- Name gotchas the tool schemas don't surface
+- Show concrete patterns (correct and incorrect)
+- Stay tool-agnostic — describe what to do, not which tool to call
 
 ## License
 

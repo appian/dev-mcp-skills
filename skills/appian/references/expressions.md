@@ -109,13 +109,13 @@ local!record['recordType!{7819d7d4-b730-442b-b27a-0408f61b29c3}Case.fields.{1824
 ```
 
 This applies everywhere a `recordType!` reference appears in an expression:
-- `updateInterfaceExpression` — SAIL expressions
-- `createProcessModel` / `updateProcessModel` — Script Task `outputVariables` expressions, XOR `condition` expressions, `startFormExpr`
-- `addRecordTypeView` — `interfaceExpression`
-- `addRecordTypeAction` — `contextExpr`, `visibilityExpr`
-- `createExpressionRule` / `updateExpressionRule` — `expression` body
+- Interface expressions
+- Process model expressions (Script Task outputs, XOR conditions, start form)
+- Record type view interface expressions
+- Record action context and visibility expressions
+- Expression rule bodies
 
-To build UUID-qualified references, retrieve the record type UUID from `createRecordType` or `getRecordType`, and field UUIDs from `listRecordTypeFields` or the `sourceAndCustomFields` in the create response.
+To build UUID-qualified references, retrieve the record type UUID from the creation or get response, and field UUIDs from the fields list or the creation response.
 
 **Plain-text shorthand** (`recordType!Case.fields.status`) is shown in examples throughout this skill for readability. When generating actual expressions, always substitute the UUID-qualified format.
 

@@ -210,11 +210,11 @@ If an error occurs partway through a multi-step operation (e.g., creating a reco
 
 ## Runtime Verification
 
-After creating or updating any interface, run `testInterface` to catch runtime errors that syntax validation misses.
+After creating or updating any interface, test-render it to catch runtime errors that syntax validation misses.
 
 ### Interface Checks
 
-After every `createInterface` or `updateInterface`, call `testInterface` and verify:
+After every interface create or update, test the interface and verify:
 
 1. `diagnostics.error` must be null — any value means a runtime rendering failure
 2. No `"-1"` values in rendered text — indicates a failed `.totalCount` or broken query

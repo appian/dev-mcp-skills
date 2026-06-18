@@ -240,8 +240,94 @@ Add filters after record type fields and relationships exist (step 10 in depende
 
 - **Creating relationships before all RTs exist** — both source and target must exist first
 - **One-sided relationships** — always declare both MANY_TO_ONE + ONE_TO_MANY
-- **Composite primary keys** — Appian requires single-column INTEGER surrogate PK
+- **Composite primary keys** — Appian requires single-column INTEGER surrogate PK named `id`
 - **Missing `createTable: true`** — without it, Appian expects table to already exist
 - **Wrong field type names** — case-sensitive: TEXT, INTEGER, DATETIME (not text, integer)
 - **Audit fields on junction/reference tables** — only entity tables get audit fields
 - **Not discovering existing RTs** — always list record types in the app to check what exists and get dataSourceUuid/schema from existing RTs
+- **Version conflicts on relationships** — add relationships sequentially, not in parallel (each add increments versionId)
+- **Wrong title expression format** — use `rv!record['recordType!{uuid}Name.fields.{fieldUuid}fieldName']`, not `rf!field`
+- **Fabricating usernames in sample data** — query SYSTEM_RECORD_TYPE_USER for real usernames
+- **PK named `caseId` or `customerId`** — must be just `id`
+- **USER fields with Username suffix** — use `createdBy`, `modifiedBy` (not `createdByUsername`)
+
+## Title Expression
+
+Set a title expression after creating a record type to define the text shown in record links and headers.
+
+**Format:**
+```
+rv!record['recordType!{recordTypeUuid}RecordTypeName.fields.{fieldUuid}fieldName']
+```
+
+**Construction:**
+1. Get the record type UUID and exact name (including spaces) from the creation response
+2. Get the field UUID for the title field (`label` for reference tables, `title`/`name` for entities)
+3. Combine using the exact format above — record type name must include spaces, field name is camelCase
+
+**Common mistakes:**
+- ❌ `rf!label` — wrong prefix
+- ❌ Using database column name (`LABEL`) instead of field name (`label`)
+- ❌ Missing spaces in record type name ("CMStatus" vs "CM Status")
+
+## Sequential Relationship Creation
+
+Add relationships to the same record type **one at a time**. Each relationship addition increments the record type's `versionId`. Parallel additions to the same record type cause 409 version conflict errors.
+
+```
+Add relationship "status" (versionId=2)    → succeeds, versionId now 3
+Add relationship "priority" (versionId=3)  → succeeds, versionId now 4
+```
+
+If you get a 409, fetch the current record type to get the latest `versionId` and retry.
+
+## Sample Data
+
+Every database-backed record type needs sample data after creation.
+
+### Quantity Guidelines
+
+- **Reference tables**: All specified values (3-10 complete vocabulary)
+- **Primary entities**: 15-20 diverse, realistic examples
+- **Junction tables**: 20-30 relationships showing varied patterns
+
+### Distribution Patterns
+
+For primary entities, provide variety:
+- **Across categories**: 3-4 per status/priority (not all in one)
+- **Across time**: Span 3-6 months (not all same day)
+- **Across users**: 2-4 per assignee (not concentrated)
+- **Value ranges**: Realistic spreads ($50-$5000, not all $100)
+
+### Reference Table Sample Data
+
+List specific values:
+```
+STATUS: Created, Assigned, Approved, Closed
+PRIORITY: Low, Medium, High, Critical
+```
+
+Each gets: id (auto), label (specified), sortOrder (1,2,3...), isActive (true)
+
+### Primary Entity Sample Data
+
+Provide domain-appropriate examples:
+```
+MAINTENANCE_REQUEST: Generate 18 examples with realistic titles
+(HVAC System Failure, Electrical Outlet Repair, Water Leak, etc.)
+Distribute: 4-5 per priority, 3-4 per status, span last 4 months,
+assign 3-5 requests per technician
+```
+
+### Junction Table Sample Data
+
+Show relationship variety:
+```
+STUDENT_COURSE: Generate 25 enrollments showing students in multiple
+courses. Some students in 2-3 courses, vary enrollment dates across
+2-3 semesters
+```
+
+### USER Field Values (MANDATORY)
+
+Before generating sample data with USER fields, query `SYSTEM_RECORD_TYPE_USER` to get real usernames. Never fabricate usernames — they must match actual platform users for relationship navigation to work.

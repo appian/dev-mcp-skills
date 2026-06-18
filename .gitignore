@@ -5,9 +5,8 @@ Thumbs.db
 # Editors
 .idea/
 .vscode/
+.claude/
+.kiro/
 *.swp
 *.swo
 *~
-
-# Claude Code
-.claude/

@@ -89,3 +89,14 @@ Same iterative pattern as connected systems:
 - **409 Conflict** — object already exists or is already configured (record events)
 - **Validation errors after update** — check that renamed/removed inputs don't break `ri!` references in expressions
 - **Missing parent** — folders need `parentFolderUuid`, process models need PM folder UUID, documents need document folder UUID
+
+## Handling Tool Limitations
+
+Not every operation can be completed with the available tools. When you hit one that can't, stop retrying and move on.
+
+The tools do not cover every Appian object type, configuration option, or field type. When an error indicates the operation itself isn't supported — as opposed to a correctable input mistake — flag it as a manual step for the user rather than continuing to retry.
+
+When surfacing a manual step:
+- State the action clearly (e.g., "Create a constant of type Process Model in Appian Designer")
+- Provide context values generated during automation (UUIDs, names) so the user can complete it without re-discovering them
+- Continue with the rest of the plan — don't block on one unsupported operation unless downstream steps depend on its output

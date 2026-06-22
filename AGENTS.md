@@ -38,6 +38,10 @@ Only `references/tools-mcp.md` may reference MCP tool names. It covers patterns 
 
 The MCP tool schemas describe parameters, types, and return values. Reference files should cover what schemas cannot: conventions, patterns, gotchas, ordering constraints, and domain knowledge.
 
+### Skill content vs. tool issues
+
+The skill teaches durable domain knowledge — patterns and conventions that are true regardless of tool implementation. Do not encode workarounds for tool bugs or limitations in the skill. If a failure is caused by the tool itself (e.g., validation behavior that doesn't match Appian Designer, missing support for an object type), file a GitHub issue with the `tool-change-proposal` label instead. See CONTRIBUTING.md for the issue format.
+
 ## Skill Structure
 
 ```

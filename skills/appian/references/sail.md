@@ -311,6 +311,23 @@ a!gridField(
 
 Inside grid column `value` expressions, use `fv!row` to access the current row's record data.
 
+### Record Actions on Grids
+
+Use `recordActions` on `a!gridField` to surface record list actions as buttons above the grid:
+
+```
+a!gridField(
+  label: "Cases",
+  data: a!recordData(recordType: 'recordType!{rtUuid}Name'),
+  columns: { ... },
+  recordActions: a!recordActionItem(
+    action: 'recordType!{rtUuid}Name.actions.{actionKey}'
+  )
+)
+```
+
+The action reference comes from the record type's configured actions. This renders a button above the grid that launches the action's process model form. RELATED_ACTIONs do not auto-surface on custom grids — you must wire them explicitly with `recordActions`.
+
 ### Record Link in Grid
 
 Make grid values clickable to navigate to a record view. **Do NOT put `a!recordLink()` directly in `a!gridColumn(value:)` or wrap it in `a!linkField()`** — both serialize to raw `@attributes` text at runtime.

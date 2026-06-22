@@ -80,6 +80,24 @@ If a reference teaches something **incorrect** (causes failures rather than prev
 - What it says vs. what actually works
 - Your Appian version (if relevant)
 
+## Tool Change Proposals
+
+Sometimes a failure mode is caused by the MCP tools themselves — not missing skill knowledge. If the agent hits an error that can only be fixed by changing tool behavior (not by teaching a different pattern), open an issue with the `tool-change-proposal` label instead of submitting a skill change.
+
+**When to file a tool change proposal (not a skill change):**
+- The tool rejects valid inputs or configurations
+- The tool's validation doesn't match in-product (Appian Designer) behavior
+- A supported object type or field type is missing from the tool
+- The tool returns incorrect data or silently drops configuration
+
+**Issue format:**
+- **Problem** — what operation fails and what error is returned
+- **Evidence** — sample expressions or configurations that reproduce the issue, with the error messages. Do not include environment-specific names, server URLs, or internal identifiers.
+- **Expected behavior** — what should happen instead
+- **Impact** — what the agent can't automate as a result
+
+Tool change proposals are triaged by maintainers who have access to the tool implementation. The skill should NOT encode workarounds for tool bugs — use the general "Handling Tool Limitations" guidance in `references/tools-mcp.md` instead.
+
 ## Code of Conduct
 
 This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md). Be respectful and constructive.

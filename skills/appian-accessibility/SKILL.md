@@ -5,7 +5,7 @@ description: "Audit and fix accessibility issues in Appian SAIL interfaces using
 
 ## Purpose
 
-This skill enables programmatic accessibility auditing of Appian interfaces by inspecting the SAIL component tree returned by `testInterface`. It extracts the SAIL Testing checks from the Aurora Design System accessibility checklist — these are the checks that can be performed by examining SAIL parameters rather than requiring manual browser testing or screen reader verification.
+This skill enables programmatic accessibility auditing of Appian interfaces by inspecting the SAIL component tree returned by `testInterface`. It covers the SAIL Testing checks that can be performed by examining SAIL parameters rather than requiring manual browser testing or screen reader verification.
 
 ## How It Works
 
@@ -96,22 +96,11 @@ These SAIL Testing checks cover what can be verified by inspecting component par
 - **Screen reader announcements** — requires assistive technology testing
 - **Visual inspection items** — placeholder text usage, focus visibility, content reflow at 200%/400% zoom
 
-For complete WCAG 2.2 compliance, these programmatic checks must be supplemented with manual testing. See `#[[file:references/aurora-accessibility-reference.md]]` for the full checklist including manual testing categories.
+For complete WCAG 2.2 compliance, these programmatic checks must be supplemented with manual testing. See `#[[file:references/accessibility-reference.md]]` for the full checklist including manual testing categories.
 
-## Reference: Aurora Design System
+## Reference: Accessibility Checklist
 
-The canonical accessibility checklist is maintained in the Aurora Design System repository:
-
-- **Repository**: https://github.com/appian-design/aurora
-- **Key file**: `docs/accessibility/checklist.md` — full checklist with all testing methods
-- **MCP server**: https://github.com/appian-design/aurora-mcp
-
-To refresh your knowledge of the latest accessibility requirements:
-```
-https://raw.githubusercontent.com/appian-design/aurora/main/docs/accessibility/checklist.md
-```
-
-Use `web_fetch` on this URL when the rules in this skill may be outdated or when auditing against newly added criteria.
+The full accessibility checklist including manual testing categories is available in `#[[file:references/accessibility-reference.md]]`.
 
 ## Cross-References to Other Skills
 
@@ -143,4 +132,4 @@ Use `web_fetch` on this URL when the rules in this skill may be outdated or when
 - For verifying changes → activate **appian-change-review**
 - For writing SAIL expressions → activate **appian-expressions**
 - For latest Appian docs → call `mcp__appian-docs__search_appian_knowledge_sources` with "accessibility" or component names
-- For the full Aurora checklist → fetch from the GitHub URL above
+- For the full accessibility checklist → see `#[[file:references/accessibility-reference.md]]`

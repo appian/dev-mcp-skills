@@ -318,6 +318,4 @@ Keep `id` as PK for internal relationships. Never use external IDs as FKs.
 
 ## When You Need More
 
-Load `references/entity-patterns.md` for entity design templates and field conventions.
-
 Load `references/relationship-patterns.md` for relationship type details, junction table patterns, and reference table patterns.

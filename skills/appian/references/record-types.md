@@ -46,6 +46,24 @@ Optional:
 
 Load `references/field-types.md` for the complete field type reference.
 
+### USER Field Requirements
+
+**When creating USER type fields, you MUST add relationships to SYSTEM_RECORD_TYPE_USER.** This is a separate step performed AFTER record type creation.
+
+USER fields (e.g., `createdBy`, `modifiedBy`, `assignedTo`) store usernames but require an explicit MANY_TO_ONE relationship to the system User record type for full functionality. Without this relationship:
+- USER fields display as plain text (no name, email, profile picture)
+- Related records queries fail
+- Record views cannot navigate to user details
+- Relationship traversal breaks in interfaces
+
+**See `references/relationship-patterns.md` → "USER Field Relationships to SYSTEM_RECORD_TYPE_USER" for the complete pattern including:**
+- Required relationship configuration
+- Platform constants (SYSTEM_RECORD_TYPE_USER, SYSTEM_RECORD_TYPE_USER_FIELD_username)
+- Naming conventions
+- Execution order
+
+This relationship is mandatory for every USER field in every record type.
+
 ## Naming Conventions
 
 - **Record type name**: `PREFIX EntityName` in Title Case, singular — `CM Case`, `CM Customer`, `CM Letter of Authorization`

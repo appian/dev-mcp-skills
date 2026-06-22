@@ -380,3 +380,172 @@ When building the final data model, TEXT fields that correspond to included refe
 The FK field name is derived from the reference table name (lowercase + `_id`), not from the original TEXT field name. This ensures consistent, predictable naming.
 
 If a reference table is excluded from the final scope, the field stays as TEXT instead of being transformed to a FK.
+
+## USER Field Relationships to SYSTEM_RECORD_TYPE_USER
+
+USER fields store references to Appian authenticated users. Every USER field MUST have a MANY_TO_ONE relationship to the platform's system user record type.
+
+### CRITICAL Requirement
+
+**Every USER field requires a MANY_TO_ONE relationship to SYSTEM_RECORD_TYPE_USER.**
+
+Without this relationship:
+- Records cannot traverse to user details
+- USER fields appear as text usernames only (no name, email, profile picture)
+- Related records queries fail
+- Record views and forms break
+- Relationship traversal fails in interfaces
+
+This is not optional. The relationship must be added for every USER field.
+
+### When to Use USER Fields
+
+**Use USER type for:**
+- Appian authenticated users in the system
+- Audit fields tracking who performed actions (createdBy, modifiedBy)
+- Assignment and ownership fields (assignedTo)
+- Approval workflow fields (approvedBy, requestedBy)
+- Issue reporting (reportedBy)
+
+**Common USER field names:**
+- `createdBy` — User who created the record
+- `modifiedBy` — User who last modified the record
+- `assignedTo` — User assigned to work on the record
+- `approvedBy` — User who approved the record
+- `requestedBy` — User who requested the record
+- `reportedBy` — User who reported the issue/ticket
+
+**Do NOT use USER type for:**
+- ❌ External users (customers, vendors) → Use TEXT field + separate entity
+- ❌ Employees who aren't Appian users → Create Employee entity
+- ❌ Roles or groups → Use GROUP field type instead
+
+### Required Relationship Parameters
+
+For each USER field, create one MANY_TO_ONE relationship with these exact parameters:
+
+**Parameters:**
+- `relationshipName`: `{fieldName}User` (algorithmically derived)
+  - `createdBy` → `createdByUser`
+  - `modifiedBy` → `modifiedByUser`
+  - `assignedTo` → `assignedToUser`
+  - `approvedBy` → `approvedByUser`
+  - `requestedBy` → `requestedByUser`
+  - `reportedBy` → `reportedByUser`
+- `sourceRecordTypeFieldUuid`: UUID of the USER field (obtained from field creation response)
+- `targetRecordTypeFieldUuid`: `"SYSTEM_RECORD_TYPE_USER_FIELD_username"` (literal string constant)
+- `targetRecordTypeUuid`: `"SYSTEM_RECORD_TYPE_USER"` (literal string constant)
+- `relationshipType`: `"MANY_TO_ONE"`
+
+**Important Platform Constants:**
+- `SYSTEM_RECORD_TYPE_USER` — System record type UUID (constant across all environments)
+- `SYSTEM_RECORD_TYPE_USER_FIELD_username` — Username field UUID (constant across all environments)
+
+These are **literal string values**, not variables to retrieve. Use exactly as shown in quotes.
+
+### Field Naming Conventions
+
+**Correct field names:**
+- ✅ `createdBy` (not `createdByUsername`, `createdByUser`)
+- ✅ `modifiedBy` (not `modifiedByUsername`, `lastModifiedBy`)
+- ✅ `assignedTo` (not `assignedToUser`, `assignee`)
+- ✅ `approvedBy` (not `approver`, `approvedByUser`)
+- ✅ `requestedBy` (not `requestedByUser`)
+- ✅ `reportedBy` (not `reportedByUser`)
+
+**Why:** Field name describes the role/action, not the type. The USER type already indicates it's a user reference. Avoid redundant suffixes like `Username` or `User` in field names.
+
+### Relationship Naming Algorithm
+
+Append `User` to the USER field name:
+
+| USER Field Name | Relationship Name |
+|---|---|
+| createdBy | createdByUser |
+| modifiedBy | modifiedByUser |
+| assignedTo | assignedToUser |
+| approvedBy | approvedByUser |
+| requestedBy | requestedByUser |
+| reportedBy | reportedByUser |
+
+The relationship name is always `{fieldName}User`, NOT the same as the field name.
+
+### Execution Order
+
+USER field relationships should be added in this sequence:
+
+1. **After FK relationships to reference tables/entities** (statusId, priorityId, categoryId, customerId)
+2. **Before entity sample data insertion** (sample data needs relationships in place for traversal)
+3. **Sequentially** (one at a time, not in parallel, to avoid version conflicts)
+
+**Example order for Ticket entity with 3 USER fields:**
+```
+Step 1: Create Ticket record type with fields:
+  - id (INTEGER, PK)
+  - title (TEXT)
+  - statusId (INTEGER, FK)
+  - priorityId (INTEGER, FK)
+  - createdBy (USER)
+  - modifiedBy (USER)
+  - assignedTo (USER)
+
+Step 2: Add FK relationships to reference tables (bidirectional):
+  - Ticket.statusId → Status.id (MANY_TO_ONE)
+  - Status.id → Ticket.statusId (ONE_TO_MANY)
+  - Ticket.priorityId → Priority.id (MANY_TO_ONE)
+  - Priority.id → Ticket.priorityId (ONE_TO_MANY)
+
+Step 3: Add USER field relationships (sequential, one at a time):
+  - Ticket.createdBy → SYSTEM_RECORD_TYPE_USER (MANY_TO_ONE, relationshipName: "createdByUser")
+  - Ticket.modifiedBy → SYSTEM_RECORD_TYPE_USER (MANY_TO_ONE, relationshipName: "modifiedByUser")
+  - Ticket.assignedTo → SYSTEM_RECORD_TYPE_USER (MANY_TO_ONE, relationshipName: "assignedToUser")
+
+Step 4: Insert entity sample data (all relationships now exist)
+
+Step 5: Set title expression
+```
+
+**Key points:**
+- Add USER relationships sequentially, not in parallel
+- Each relationship addition increments the record type's versionId
+- Use the updated versionId from each response for the next relationship
+- USER field relationships come after FK relationships but before sample data
+
+### Sample Data with USER Fields
+
+Before generating sample data with USER field values:
+
+1. Query SYSTEM_RECORD_TYPE_USER to retrieve real usernames from the target environment
+2. Use actual usernames from the query results
+3. **Never fabricate usernames** like "user1", "admin", "john.doe" — they may not exist
+
+**Why this matters:** Fabricated usernames cause sample data insertion to fail or create broken references. USER fields must contain valid usernames that exist in the Appian environment.
+
+**Example valid sample data (after querying for real usernames):**
+```
+id,title,statusId,priorityId,createdBy,modifiedBy,assignedTo
+1,Login issue,1,1,jupiter.munoz,jupiter.munoz,jupiter.munoz
+2,Reset password request,2,2,jupiter.munoz,jupiter.munoz,jupiter.munoz
+3,Cannot access reports,1,1,jupiter.munoz,jupiter.munoz,jupiter.munoz
+```
+
+### Common Mistakes
+
+- ❌ **Forgetting USER field relationships** — Adding USER fields but omitting the required relationships to SYSTEM_RECORD_TYPE_USER
+- ❌ **Wrong target UUIDs** — Using variables instead of literal string constants
+- ❌ **Wrong relationship name** — Using `createdBy` (field name) instead of `createdByUser` (relationship name)
+- ❌ **Parallel relationship addition** — Adding multiple USER relationships simultaneously causes version conflicts
+- ❌ **Creating user entities** — Creating a custom USER or EMPLOYEE table instead of using USER fields with system relationships
+- ❌ **Wrong field naming** — Using `createdByUsername` instead of `createdBy`
+- ❌ **Fabricating usernames in sample data** — Using made-up usernames that don't exist in the environment
+- ❌ **Skipping relationships** — Assuming USER fields work without explicit relationships
+
+### Verification
+
+After adding USER field relationships, verify by listing the record type's relationships.
+
+**Expected relationships for entity with 2 USER fields (createdBy, modifiedBy):**
+- `createdByUser` (MANY_TO_ONE to SYSTEM_RECORD_TYPE_USER) ✅
+- `modifiedByUser` (MANY_TO_ONE to SYSTEM_RECORD_TYPE_USER) ✅
+
+If missing: Add the missing USER field relationships before proceeding to sample data insertion.

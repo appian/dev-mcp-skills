@@ -56,6 +56,8 @@ USER fields (e.g., `createdBy`, `modifiedBy`, `assignedTo`) store usernames but 
 - Record views cannot navigate to user details
 - Relationship traversal breaks in interfaces
 
+**This relationship is MANDATORY and should be added automatically** (Proactive Completion pattern). When you create or add a USER field, immediately add the required relationship without asking the user. See "Confirmation and Completion Patterns" section below for the complete workflow.
+
 **See `references/relationship-patterns.md` → "USER Field Relationships to SYSTEM_RECORD_TYPE_USER" for the complete pattern including:**
 - Required relationship configuration
 - Platform constants (SYSTEM_RECORD_TYPE_USER, SYSTEM_RECORD_TYPE_USER_FIELD_username)
@@ -269,6 +271,301 @@ Add filters after record type fields and relationships exist (step 10 in depende
 - **PK named `caseId` or `customerId`** — must be just `id`
 - **USER fields with Username suffix** — use `createdBy`, `modifiedBy` (not `createdByUsername`)
 
+## Confirmation and Completion Patterns
+
+This section covers record type-specific patterns for when to ask users for confirmation versus when to automatically complete mandatory steps. Always load `references/confirmation-patterns.md` for universal workflows.
+
+**Relationship between this section and confirmation-patterns.md:**
+- **Universal file** provides the conceptual workflow (what to do)
+- **This section** provides the executable details (exactly how to do it for record types)
+
+Load both files together - universal for structure, this file for specifics.
+
+### Delete Operations
+
+**When to use:** Before deleting record types, fields, relationships, views, actions, or user filters.
+
+**Cross-reference:** `confirmation-patterns.md` → Universal Workflow 1 (Delete Confirmation) for overall workflow structure. This section provides the specific dependency checks for record types.
+
+#### Record Type Deletion
+
+Record type deletion is **CRITICAL risk** and requires typed confirmation. Follow these dependency checks:
+
+1. **Check relationships** via `listRecordTypeRelationships(uuid)`
+   - Count MANY_TO_ONE relationships (this RT depends on others)
+   - Count ONE_TO_MANY relationships (other RTs depend on this one)
+   - Each relationship that references this RT will break
+
+2. **Check views** via `listRecordTypeViews(uuid)`
+   - Each view will be deleted along with the record type
+   - Views may be referenced in sites or interfaces
+
+3. **Check actions** via `listRecordTypeActions(uuid)`
+   - Each action will be deleted
+   - Actions may be referenced in interfaces or process models
+
+4. **Check data** via `listRecordData(uuid, limit=1)`
+   - If any records exist, data will become inaccessible
+   - Database table is PRESERVED (see confirmation-patterns.md for details)
+
+**Present to user:**
+```
+You are about to DELETE record type "[Name]" (UUID: [uuid]).
+
+This will permanently remove:
+- Appian record type definition (metadata layer)
+- [N] relationships to other record types
+- [N] record views
+- [N] record actions
+- [N] user filters
+
+Database impact:
+- The database table [TABLE_NAME] will be PRESERVED
+- [N] data records remain in database but are no longer accessible via Appian
+
+Impact on other objects:
+- [List of record types with FK relationships to this one] will have orphaned fields
+- Interfaces/expressions using this record type will break
+
+This action CANNOT be undone (record type metadata will be lost).
+
+To confirm, type: DELETE [Name]
+```
+
+#### Field Deletion
+
+Field deletion is **HIGH risk** and requires Yes/No confirmation if the field is in use.
+
+**Dependency checks:**
+
+1. **Check relationships** via `listRecordTypeRelationships(uuid)`
+   - Is this field used as `sourceRecordTypeFieldUuid`? (FK field in MANY_TO_ONE)
+   - Is this field used as `targetRecordTypeFieldUuid`? (PK field in relationship)
+   - If yes, relationship must be deleted first
+
+2. **Check title expression** via `getRecordType(uuid)`
+   - Does `titleExpression` reference this field's UUID?
+   - If yes, title expression will break
+
+3. **Check views** via `listRecordTypeViews(uuid)`
+   - Review each view's displayed fields
+   - If field is displayed, view will show empty column
+
+4. **Check security expressions** (cannot detect automatically)
+   - Warn user: "Manual verification needed if field used in security expressions"
+
+**Present to user if field is in use:**
+```
+You are about to DELETE field "[fieldName]" from record type "[RecordTypeName]".
+
+This field is currently used in:
+- [N] relationships (list relationship names)
+- Title expression
+- [N] record views
+
+Deleting this field will break these references. Continue? (yes/no)
+```
+
+**If field not in use, proceed with lower-risk confirmation:**
+```
+Delete field "[fieldName]"? This field is not currently used in relationships, views, or title expression. Continue? (yes/no)
+```
+
+#### Relationship Deletion
+
+Relationship deletion is **HIGH risk** if it's the only navigation path between record types.
+
+**Check before deleting:**
+- Is there a reverse relationship? (MANY_TO_ONE ↔ ONE_TO_MANY pair)
+- If deleting one side, should both sides be deleted?
+
+**Present to user:**
+```
+You are about to DELETE relationship "[relationshipName]" ([Type]: [SourceRT] → [TargetRT]).
+
+[If reverse exists] The reverse relationship "[reverseName]" will remain. Users can still navigate [TargetRT] → [SourceRT] but not [SourceRT] → [TargetRT].
+
+[If no reverse] This is the only navigation path between these record types.
+
+Continue? (yes/no)
+```
+
+**Recommendation to AI:** For bidirectional relationships, suggest deleting both sides to avoid one-way navigation confusion.
+
+### Name Collision Detection
+
+**When to use:** Before creating record types or fields.
+
+**Cross-reference:** `confirmation-patterns.md` → Universal Workflow 2 (Name Collision Detection)
+
+#### Record Type Name Collision
+
+Record types are **application-scoped**. Check within the current application only.
+
+**Mandatory Step 1:** Call `listRecordTypes(appUuid)` BEFORE `createRecordType`
+
+**Similarity rules:**
+- Same app + exact match → COLLISION (ask user)
+- Same app + same prefix + related purpose → POTENTIAL COLLISION (ask user)
+  - Example: "PM Status" vs "PM Priority" (both lookups)
+  - Example: "PM Case" vs "PM CaseStatus" (subset name)
+- Different app → NO COLLISION (proceed without asking)
+
+**Present to user if collision detected:**
+```
+Found existing record type "[ExistingName]" in this application.
+
+Would you like to:
+1. Use the existing record type
+2. Create a new record type with a different name
+3. Proceed anyway (creates duplicate)
+
+What would you like to do? (1/2/3)
+```
+
+#### Field Name Collision
+
+Fields are scoped to their parent record type. Check within the same record type only.
+
+**Mandatory Step 1:** Check `fields` array from `getRecordType(uuid)` or creation response
+
+**Present to user if exact match found:**
+```
+Record type "[RTName]" already has a field named "[fieldName]".
+
+Cannot create duplicate field name. Please choose a different name.
+```
+
+### Proactive Completion Patterns
+
+**Key principle:** These are **mandatory requirements**, not user choices. Complete them automatically and inform the user what was done.
+
+#### USER Field Relationships (MANDATORY)
+
+**Rule:** Every USER field MUST have a MANY_TO_ONE relationship to `SYSTEM_RECORD_TYPE_USER`.
+
+**When to trigger:** Immediately after creating a record type with USER fields, or after adding a USER field to an existing record type.
+
+**Workflow:**
+1. Detect USER field in creation response (field with `fieldType: "USER"`)
+2. Automatically call `addRecordTypeRelationship`:
+   - `relationshipType`: "MANY_TO_ONE"
+   - `sourceRecordTypeUuid`: the record type UUID
+   - `sourceRecordTypeFieldUuid`: the USER field UUID
+   - `targetRecordTypeUuid`: `SYSTEM_RECORD_TYPE_USER`
+   - `targetRecordTypeFieldUuid`: `SYSTEM_RECORD_TYPE_USER_FIELD_username`
+   - `relationshipName`: `{fieldName}User` (e.g., `assignedTo` → `assignedToUser`)
+3. Inform user: "✅ Created USER field '[fieldName]' with required relationship to system User record type"
+
+**Do NOT ask:** "Should I add a relationship to the User record type?" — this is mandatory, not optional.
+
+**Example from validated test:**
+```
+Created record type "PMS Task" with fields:
+- assignedTo (USER)
+- createdBy (USER)
+- modifiedBy (USER)
+
+✅ Automatically added 3 required relationships:
+- Task.assignedToUser → User (MANY_TO_ONE)
+- Task.createdByUser → User (MANY_TO_ONE)
+- Task.modifiedByUser → User (MANY_TO_ONE)
+```
+
+**Cross-reference:** `references/relationship-patterns.md` for detailed USER field relationship pattern.
+
+#### Bidirectional Relationships (MANDATORY)
+
+**Rule:** FK relationships require both MANY_TO_ONE (FK table → referenced table) AND ONE_TO_MANY (referenced table → FK table) for bidirectional navigation.
+
+**When to trigger:** After adding a MANY_TO_ONE relationship.
+
+**Workflow:**
+1. User requests or AI adds MANY_TO_ONE relationship (e.g., Task.project → Project)
+2. Automatically add reverse ONE_TO_MANY relationship:
+   - On the **target** record type (Project)
+   - Pointing back to the **source** record type (Task)
+   - Use pluralized relationship name (e.g., `tasks`)
+3. Ask for missing info only: "What should the reverse relationship name be on [TargetRT]? (suggest: '[pluralizedName]')"
+4. Add both relationships sequentially
+5. Inform user: "✅ Added bidirectional relationships: [SourceRT].[fkName] and [TargetRT].[reverseName]"
+
+**Do NOT ask:** "Should I add the reverse relationship?" — this is mandatory per Appian best practices.
+
+**Example from validated test:**
+```
+User: "Add relationship from Task to Project"
+
+AI: Checks if reverse relationship exists
+AI: "Task.projectId → Project.id (MANY_TO_ONE).
+     Will also add reverse Project → Task (ONE_TO_MANY) for bidirectional navigation.
+     What should the relationship name be on Project? (suggest: 'tasks')"
+     
+User: "tasks"
+
+AI: [Adds Task.project MANY_TO_ONE, then Project.tasks ONE_TO_MANY]
+    "✅ Added bidirectional relationships: Task.project and Project.tasks"
+```
+
+**Cross-reference:** `references/relationship-patterns.md` for complete bidirectional pattern details.
+
+#### Sample Data Offering
+
+**When to use:** After successfully creating a database-backed record type.
+
+**Pattern type:** INFORMATIVE — neither confirmation nor proactive completion.
+
+**Workflow:**
+
+After creating a record type, inform user that no sample data was added:
+
+```
+✅ Created [RecordTypeName] record type with [N] fields.
+
+Note: No sample data added. To add test records, you can say:
+- "Add sample data" (uses intelligent defaults: 15-20 records with realistic distribution)
+- "Add 15 test records" (specify exact quantity)
+- "Add realistic data" (applies full distribution patterns across categories/time/users)
+```
+
+**If user requests sample data:**
+
+1. Follow decision rules below (see Sample Data Decision Rules section)
+2. Generate realistic data based on field types:
+   - TEXT fields: Realistic names/descriptions
+   - INTEGER fields: Sequential IDs, reasonable numbers
+   - USER fields: Query SYSTEM_RECORD_TYPE_USER (MANDATORY)
+   - DATETIME fields: Recent dates with realistic spacing
+   - FK fields: Reference existing records (query target record type)
+3. Insert via `insertRecordData` (CSV format)
+4. Inform: "✅ Added [N] sample records"
+
+**Why inform but not ask:**
+- Sample data is optional, not mandatory
+- User may want specific data, not generic samples
+- Doesn't block workflow with unnecessary question
+
+**Example:**
+
+```
+User: "Create Employee record type with fields: id, name, email, departmentId"
+
+AI: [Creates record type]
+    "✅ Created Employee record type with 4 fields (id, name, email, departmentId).
+    
+    Note: No sample data added. To add test records, you can say:
+    - 'Add sample data' (uses intelligent defaults: 15-20 records with realistic distribution)
+    - 'Add 15 test records' (specify exact quantity)
+    - 'Add realistic data' (applies full distribution patterns across categories/time/users)"
+
+User: "Add 15 sample employees"
+
+AI: [Generates 15 realistic employees, queries department FK target]
+    "✅ Added 15 sample employee records."
+```
+
+**Cross-reference:** For decision rules on quantity, distribution, and related record population, see Sample Data Decision Rules section below.
+
 ## Title Expression
 
 Set a title expression after creating a record type to define the text shown in record links and headers.
@@ -349,3 +646,186 @@ courses. Some students in 2-3 courses, vary enrollment dates across
 ### USER Field Values (MANDATORY)
 
 Before generating sample data with USER fields, query `SYSTEM_RECORD_TYPE_USER` to get real usernames. Never fabricate usernames — they must match actual platform users for relationship navigation to work.
+
+---
+
+### Sample Data Decision Rules
+
+When user requests sample data, follow these decision rules to determine when to ask for input vs when to use intelligent defaults.
+
+#### 1. Quantity Decision
+
+**User specifies count explicitly:**
+- "Add 10 sample employees" → Use 10 (don't ask)
+- "Add sample data with 20 rows" → Use 20 (don't ask)
+
+**User says "add sample data" (no count):**
+- **Reference tables (Status, Priority, Category):** Use ALL values from existing guidance (don't ask)
+  - Status tables: Use exactly the statuses from Quantity Guidelines (Created, Assigned, Approved, Closed)
+  - Priority tables: Use exactly Low, Medium, High, Critical (don't ask)
+- **Primary entities (Case, Employee, Order):** Use 15-20 (existing guidance, don't ask)
+- **Junction tables (many-to-many):** Use 20-30 (existing guidance, don't ask)
+
+**Never ask:** "How many sample records?" unless user request is ambiguous.
+
+**Rationale:** Existing guidance already defines appropriate quantities. Don't ask questions when guidance provides the answer.
+
+#### 2. Distribution Decision
+
+**User specifies distribution:**
+- "Add cases with various statuses" → Use distribution patterns from existing guidance
+- "Add 5 high priority cases" → All same priority (as specified)
+
+**User says "add sample data" or "add realistic data":**
+- Apply distribution patterns automatically (don't ask):
+  - Across categories: 3-4 per status/priority (not all in one)
+  - Across time: Span 3-6 months (not all same day)
+  - Across users: 2-4 per assignee (not concentrated)
+  - Value ranges: Realistic spreads ($50-$5000, not all $100)
+
+**Never ask:** "What distribution do you want?" unless user specifies non-standard requirement.
+
+**Rationale:** "Realistic data" and "sample data" mean apply existing distribution patterns. User requests patterns implicitly.
+
+#### 3. Related Record Population
+
+**Core principle:** Only populate the table user requested. Don't automatically populate related tables without asking.
+
+**Foreign key field exists, target table is EMPTY:**
+- ⚠️ BLOCKING ISSUE — Cannot proceed without target values
+- Present issue and ask for resolution:
+  ```
+  Cannot add sample [SourceRecordType] records: the [TargetRecordType] table 
+  (referenced by [fieldName]) is empty.
+  
+  To proceed, we need to populate [TargetRecordType] first. Options:
+  1. You provide custom values (recommended if you know them)
+  2. Use standard values (e.g., for Status: Created, Assigned, Approved, Closed)
+  3. Skip sample data for now
+  
+  What would you like to do? (1/2/3)
+  ```
+- **Option 1 (recommended):** User provides custom values, AI creates target records, then creates source records
+- **Option 2:** AI uses standard values from guidance, creates target records, then creates source records
+- **Option 3:** Abort sample data generation
+- **Why ask:** User may have specific domain values (e.g., "Draft, Review, Published" for content status)
+
+**Foreign key field exists, target table HAS DATA:**
+- Use existing values (don't ask, don't create more)
+- Query target table: `listRecordData(targetRecordTypeUuid, limit=20)`
+- Randomly distribute FK values across existing target records
+- Only populate the table user requested (not related tables)
+- Example: Status table has 4 statuses → distribute 15 cases across those 4 statuses
+
+**Relationship is MANY_TO_ONE:**
+- Only populate source table (the one with FK field)
+- Don't add records to target table unless it's empty (see blocking issue above)
+- Example: User says "add sample cases" → populate Case table only
+  - If Status table has data: use existing statuses
+  - If Status table empty: ask to populate Status first (blocking)
+
+**Relationship is ONE_TO_MANY (inverse exists):**
+- Only populate the table user requested
+- Don't automatically populate the "many" side
+- Example: User says "add sample projects" → populate Project table only
+  - Don't auto-create Tasks even if Project.tasks relationship exists
+  - User must explicitly say "add sample tasks" to populate Task table
+
+**Rationale:** 
+- Empty FK target = blocking issue (must resolve to proceed)
+- Populated FK target = reuse existing values (maintains referential integrity)
+- Don't auto-populate related tables (user asks for what they want)
+
+#### 4. USER Field Values (MANDATORY - Always Query)
+
+Before generating sample data with USER fields:
+1. Query SYSTEM_RECORD_TYPE_USER: `listRecordData(uuid="SYSTEM_RECORD_TYPE_USER", limit=20)`
+2. Extract real usernames from results
+3. Randomly distribute across sample records
+4. Never fabricate usernames (breaks relationship navigation)
+
+**This is MANDATORY — not a decision point.**
+
+**Rationale:** USER fields must reference real platform users. Fabricated values break navigation and cause errors.
+
+#### 5. Examples by Request Type
+
+| User Request | Quantity | Distribution | Related Records (FK Behavior) |
+|---|---|---|---|
+| "Add sample data" | Use defaults (15-20 for entities) | Apply patterns (vary status/time/users) | FK target has data → use existing; FK target empty → **ASK** to populate first |
+| "Add 10 test cases" | Use 10 (specified) | Minimal (may not vary all dimensions) | FK target has data → use existing; FK target empty → **ASK** to populate first |
+| "Add realistic cases" | Use defaults (15-20) | Full patterns (vary everything) | FK target has data → use existing; FK target empty → **ASK** to populate first |
+| "Add high priority cases" | Use defaults (15-20) | All same priority (as specified) | FK target has data → use existing; FK target empty → **ASK** to populate first |
+| "Add sample projects" (has Tasks relationship) | Use defaults (15-20) | Apply patterns | Don't auto-create Tasks (user didn't ask for them) |
+
+#### 6. When to Ask vs When to Decide
+
+**Always ask (blocking decisions):**
+- FK target table is empty (cannot proceed without target records)
+- User request is genuinely ambiguous (no guidance to infer from)
+- **User says "add sample data" immediately after creating multiple record types (unclear which table to populate)**
+
+**Never ask (use existing guidance):**
+- Quantity for reference/primary/junction tables (guidance defines defaults)
+- Distribution patterns for "realistic" or "sample" data (guidance defines patterns)
+- Whether to query USER table (mandatory, not optional)
+- Whether to reuse existing FK values (standard practice, don't create duplicates)
+
+**Key Principle:** Don't ask questions when existing guidance provides the answer. Apply intelligent defaults unless there's a genuine blocking issue or ambiguity.
+
+---
+
+### Ambiguous Sample Data Requests
+
+**When ambiguity occurs:**
+
+User creates multiple record types in same conversation, then says "add sample data" without specifying which table.
+
+**Example scenarios:**
+
+| Context | Ambiguity | Why Ambiguous |
+|---|---|---|
+| User creates Employee and Department tables, then says "add sample data" | Which table? One? Both? | Two tables created, unclear target |
+| User creates Product and Category tables, then says "add sample data" | Which table? In what order? | FK relationship exists, order matters |
+| User creates single Vendor table, then says "add sample data" | No ambiguity | Only one table, clear target |
+
+**How to clarify:**
+
+Present options clearly:
+```
+You just created [N] record types: [Name1], [Name2][, ...].
+
+Which would you like to add sample data to?
+1. [Name1] ([brief description or type, e.g., "reference table"])
+2. [Name2] ([brief description or type, e.g., "entity table"])
+3. Both ([Name1] first, then [Name2])
+
+What would you like to do? (1/2/3)
+```
+
+**After user clarifies:**
+- **Option 1 or 2:** Proceed to populate specified table, check for FK blocking issues if applicable
+- **Option 3:** Populate in dependency order (reference tables before entities)
+
+**Example:**
+
+```
+User: Creates "Order Status" and "Order" tables
+User: "Add sample data"
+
+AI: "You just created 2 record types: Order Status and Order.
+
+     Which would you like to add sample data to?
+     1. Order Status (reference table - status values)
+     2. Order (entity table - orders)
+     3. Both (Order Status first, then Order)
+     
+     What would you like to do? (1/2/3)"
+
+User: "2"
+
+AI: [Queries Order Status table]
+    [Detects empty] → Triggers blocking issue with 3 options (custom/standard/skip)
+```
+
+**Cross-reference:** For handling ambiguous requests in general, see `confirmation-patterns.md` → Universal Workflow 4 (Ambiguous Request Clarification).

@@ -55,6 +55,33 @@ Pass SAIL expressions as plain string values. No special escaping beyond normal 
 ### UUIDs are always in responses
 Every create tool returns the new object's `uuid` directly in the response. No special output formatting needed — just read it from the JSON response.
 
+### Before calling create operations
+
+**MANDATORY pre-create workflow** — follow these steps BEFORE calling any `create` tool:
+
+1. **List existing objects** (environmental awareness)
+   - Creating an application → call `listApplications` first
+   - Creating a record type → call `listRecordTypes(appUuid)` first
+   - Creating an expression rule → call `listExpressionRules(appUuid)` first
+   - Creating an interface → call `listInterfaces(appUuid)` first
+   - Creating a group → call `listGroups` first
+   - Creating a constant → call `listConstants(appUuid)` first
+   - Creating a process model → call `listProcessModels(appUuid)` first
+
+2. **Check for name collisions** per `confirmation-patterns.md` → Universal Workflow 2
+   - Compare proposed name against existing objects
+   - Same-app + similar name → ask user before creating
+   - Different-app prefix → proceed without asking
+
+3. **Only then call the create operation**
+
+**Why this matters:**
+- Prevents duplicate objects with similar names
+- Detects potential conflicts before creating
+- Provides user with informed choice when collisions exist
+
+**See also:** `references/confirmation-patterns.md` for complete name collision detection workflow and examples.
+
 ## UUID Handling
 
 ### Critical Rule: Never Fabricate UUIDs
@@ -175,6 +202,8 @@ Need UUID for an operation?
 - **Reusing example UUIDs** — Documentation examples are not real UUIDs
 - **Cross-environment UUIDs** — Dev UUIDs don't work in prod (each environment has separate UUIDs)
 - **Stale UUIDs** — Using UUIDs from previous conversations without verification
+
+**See also:** `references/confirmation-patterns.md` (Universal Workflow 3: UUID Verification) for when to verify UUIDs before operations.
 - **Wrong object UUIDs** — Using field UUID where record type UUID is required, or vice versa
 - **Missing field UUIDs** — Forgetting that `sourceRecordTypeFieldUuid` and `targetRecordTypeFieldUuid` must be actual field UUIDs, not fabricated
 
@@ -332,6 +361,8 @@ This 15-step sequence ensures a complete, working data model with full bidirecti
 - **409 Conflict** — object already exists or is already configured (record events)
 - **Validation errors after update** — check that renamed/removed inputs don't break `ri!` references in expressions
 - **Missing parent** — folders need `parentFolderUuid`, process models need PM folder UUID, documents need document folder UUID
+
+**See also:** `references/confirmation-patterns.md` for interactive workflows when deleting objects, detecting name collisions, or completing mandatory steps.
 
 ## Handling Tool Limitations
 

@@ -42,6 +42,7 @@ Load the relevant reference(s) for your task:
 | When to load | Reference File |
 |---|---|
 | You need usage patterns for the Appian MCP tools | `references/tools-mcp.md` |
+| Understanding when to ask user for confirmation vs auto-complete mandatory steps | `references/confirmation-patterns.md` |
 | Creating or managing an application | `references/applications.md` |
 | Creating/modifying record types, fields, relationships, views, or actions | `references/record-types.md` |
 | Requirements mention filtering, searching, faceted navigation, or record list dropdowns | `references/record-type-user-filters.md` |
@@ -66,11 +67,17 @@ Load the relevant reference(s) for your task:
 
 **Before calling any Appian MCP tools, load reference files in this order:**
 
-#### Step 1: ALWAYS Load Tool Patterns First
+#### Step 1: ALWAYS Load Universal Patterns First
 ```
 Load: references/tools-mcp.md
+Load: references/confirmation-patterns.md
 ```
-This covers UUID handling, update behaviors, CSV formats, and tool-specific conventions. **Non-negotiable for all Appian tasks.**
+
+These cover universal patterns across all Appian tasks:
+- `tools-mcp.md`: UUID handling, update behaviors, CSV formats, tool-specific conventions
+- `confirmation-patterns.md`: When to ask user for confirmation vs auto-complete mandatory steps
+
+**Non-negotiable for all Appian work.**
 
 #### Step 2: Load Primary Domain Reference
 Use the Resource Reference Map above to identify which reference file matches your task, then load it.
@@ -92,6 +99,7 @@ After loading references, you have the domain knowledge to call tools correctly.
 
 **Validation checklist before calling tools:**
 - [ ] Loaded `references/tools-mcp.md`?
+- [ ] Loaded `references/confirmation-patterns.md`?
 - [ ] Loaded primary domain reference for this task?
 - [ ] Understand naming conventions (table names, field names, relationship names)?
 - [ ] Understand dependency order (what must exist before creating this object)?

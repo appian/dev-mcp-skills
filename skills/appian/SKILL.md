@@ -43,17 +43,20 @@ Load the relevant reference(s) for your task:
 |---|---|
 | You need usage patterns for the Appian MCP tools | `references/tools-mcp.md` |
 | Understanding when to ask user for confirmation vs auto-complete mandatory steps | `references/confirmation-patterns.md` |
+| Writing any expression or expression rule (ALWAYS load this first) | `references/function-reference.md` |
+| Using Appian functions, operators, or type conversions in expressions | `references/function-reference.md` |
 | Creating or managing an application | `references/applications.md` |
 | Creating/modifying record types, fields, relationships, views, or actions | `references/record-types.md` |
 | Requirements mention filtering, searching, faceted navigation, or record list dropdowns | `references/record-type-user-filters.md` |
 | Creating/modifying interfaces or writing SAIL form expressions | `references/interfaces.md` |
-| Creating/modifying expression rules | `references/expression-rules.md` |
+| Creating/modifying expression rules (architectural guidance) | `references/expression-rules.md` |
+| Managing expression rules (create vs update vs version) | `references/expressions.md` |
+| Expression rule architectural decisions (when to inline vs extract, performance pitfalls) | `references/expressions.md` |
 | Creating/modifying process models, adding nodes, or wiring start forms | `references/process-models.md` |
 | Creating/modifying sites or adding pages | `references/sites.md` |
 | Creating constants, groups, folders, or documents | `references/supporting-objects.md` |
 | Designing a data model, choosing entity structure, or normalizing fields into lookup tables | `references/data-modeling.md` |
 | Writing SAIL expressions for interfaces (layout, components, patterns) | `references/sail.md` |
-| Using Appian functions, operators, or type conversions in expressions | `references/expressions.md` |
 | Configuring security roles, record-level security, or group hierarchy | `references/security.md` |
 | Configuring security expressions, group hierarchies, or role-based access patterns | `references/security-patterns.md` |
 | Starting a multi-object task — need to plan dependency order and scope | `references/change-planning.md` |
@@ -71,11 +74,13 @@ Load the relevant reference(s) for your task:
 ```
 Load: references/tools-mcp.md
 Load: references/confirmation-patterns.md
+Load: references/function-reference.md
 ```
 
 These cover universal patterns across all Appian tasks:
 - `tools-mcp.md`: UUID handling, update behaviors, CSV formats, tool-specific conventions
 - `confirmation-patterns.md`: When to ask user for confirmation vs auto-complete mandatory steps
+- `function-reference.md`: Function catalog, anti-hallucination list, signatures (load before writing ANY expression)
 
 **Non-negotiable for all Appian work.**
 
@@ -100,6 +105,8 @@ After loading references, you have the domain knowledge to call tools correctly.
 **Validation checklist before calling tools:**
 - [ ] Loaded `references/tools-mcp.md`?
 - [ ] Loaded `references/confirmation-patterns.md`?
+- [ ] Loaded `references/function-reference.md`? (if writing expressions)
+- [ ] Checked anti-hallucination list before using functions? (regexmatch doesn't exist!)
 - [ ] Loaded primary domain reference for this task?
 - [ ] Understand naming conventions (table names, field names, relationship names)?
 - [ ] Understand dependency order (what must exist before creating this object)?

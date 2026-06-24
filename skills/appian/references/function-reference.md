@@ -12,11 +12,11 @@ This reference lists Appian functions available for use in expression rules and 
 
 ⚠️ **CRITICAL: Check the anti-hallucination list below BEFORE using any function**
 
-### Functions That DO NOT Exist:
+### Functions That DO NOT Exist (or Should Not Be Used):
 - `a!isPageLoad()` - No direct equivalent; SAIL validations evaluate automatically when fields have values
 - `property()` - Use dot notation instead: `object.field`
 - `a!dateTimeValue()` - Use `dateTime()` instead
-- `apply()` - Use `a!forEach()` instead for all iteration
+- `apply()` - Technically exists but DO NOT USE. Always use `a!forEach()` instead (better syntax, null handling, and component support)
 - `regexmatch()`, `regex()`, or any regex functions - SAIL has no regex support; use `split()`, `stripwith()`, `contains()`, `find()` for pattern validation (see [Email Validation Pattern](#email-validation-pattern))
 
 ### Functions to Use with Caution:
@@ -211,15 +211,55 @@ For complete null safety patterns, see [expressions.md](expressions.md).
 
 ### index()
 
-```sail
-/* Get single item by position */
-index(local!items, 1, null)  /* First item, null if not found */
+**Signature:** `index(data, index, default)`
 
-/* Get property from array */
-index(local!items, "name", {})  /* All name values, empty array if not found */
+Returns value(s) at specified index/indices from array, dictionary, map, CDT, or record.
+
+**Parameters:**
+- `data` - Array, dictionary, map, CDT, or record
+- `index` - Integer (for arrays), text (for dictionaries/maps/fields), or array of indices
+- `default` - Optional. Value to return if index invalid (must match element type)
+
+**Returns:** Value at index, or default if invalid
+
+**Basic Usage:**
+```sail
+/* Array indexing (1-based) */
+index({10, 20, 30}, 2, null)  /* Returns 20 */
+
+/* Multiple indices */
+index({10, 20, 30}, {1, 3}, null)  /* Returns {10, 30} */
+
+/* Get property from array of maps */
+index(local!items, "name", {})  /* All name values */
 
 /* Safe access with wherecontains */
 index(local!items, wherecontains(local!targetId, local!items.id), null)
+```
+
+**Important Gotchas:**
+
+⚠️ **Dictionary behavior:** When data is a dictionary and index not found, the default is IGNORED and null is returned.
+
+⚠️ **Cannot use in saveInto:** You cannot use `index()` to specify the index for a saveInto parameter. Use square brackets instead:
+```sail
+/* ❌ WRONG */
+a!save(index(local!items, 2), newValue)
+
+/* ✅ CORRECT */
+a!save(local!items[2], newValue)
+```
+
+**Advanced Usage:**
+```sail
+/* Index into CDT with field name */
+index(ri!customer, "firstName", "Unknown")
+
+/* Index into record with field reference */
+index(ri!record, recordType!Case.fields.status, null)
+
+/* Dictionary with mixed key types requires string index */
+index({1: "a", "2": "b"}, "1", null)  /* String index required */
 ```
 
 ### wherecontains()
@@ -258,6 +298,51 @@ a!forEach(
 - `fv!isFirst` - True if first item
 - `fv!isLast` - True if last item
 - `fv!itemCount` - Total number of items
+
+---
+
+## Array Functions - Additional Detail
+
+### where()
+
+**Signature:** `where(booleanArray, default)`
+
+Returns the 1-based indices where values in the array are true.
+
+**Parameters:**
+- `booleanArray` - Array of boolean values to test
+- `default` - Optional. Value to return if no true values found
+
+**Returns:** Array of integers (indices where values are true)
+
+**Behavior:**
+```sail
+/* Basic usage */
+where({true, false, true})  /* Returns {1, 3} */
+
+/* With default */
+where({false, false}, 999)  /* Returns {999} */
+where({false, false})  /* Returns {} (empty) */
+
+/* Null handling */
+where({true, false, null, true})  /* Returns {1, 4} (null treated as false) */
+
+/* Common pattern with comparisons */
+where(mod({13, 24, 35, 46}, 2) = 0)  /* Returns {2, 4} (even numbers) */
+
+/* Combined with index() */
+index(
+  ri!employees.firstName,
+  where(ri!employees.department = "Finance", -1),
+  "None"
+)  /* Returns Finance employee names, or "None" if none */
+```
+
+**Key Points:**
+- Returns 1-based indices (first element is 1)
+- Null and empty arrays treated as false
+- If no true values and no default: returns `{}`
+- If no true values and default specified: returns default
 
 ---
 

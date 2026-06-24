@@ -289,17 +289,44 @@ a!match(
 
 | Function | Returns | Use Case |
 |----------|---------|----------|
-| `tointeger(value)` | Integer | IDs, counts, interval-to-number |
+| `tointeger(value)` | Integer | IDs, counts, interval-to-number, truncates decimals |
 | `todecimal(value)` | Decimal | Currency, percentages |
 | `tostring(value)` | Text (single string) | Display text (merges arrays!) |
 | `touniformstring(array)` | Text array | Preserve array structure |
+| `toboolean(value)` | Boolean | Flag conversion |
 | `todate(value)` | Date | Date casting |
 | `todatetime(value)` | DateTime | DateTime casting |
-| `toboolean(value)` | Boolean | Flag conversion |
-| `touser(value)` | User | User reference |
+| `totime(value)` | Time | Time casting |
+| `touser(value)` | User | User reference from username text |
 | `togroup(value)` | Group | Group reference |
+| `cast(typeNumber, value)` | Varies | General-purpose cast using type number or `'type!{namespace}typeName'` |
+| `typeof(value)` | Number | Get the type number of a value |
+| `typename(typeNumber)` | Text | Get the type name from a type number |
 
-⚠️ **CRITICAL**: `tostring({1, 2})` returns `"1; 2"` (single string). Use `touniformstring({1, 2})` to get `{"1", "2"}` (array).
+**Key Considerations:**
+- Some casts lose information: `tointeger(123.45)` returns `123` (truncates decimals)
+- Comparison operators auto-normalize types: Integer vs. Decimal promotes to Decimal; any type vs. Text promotes to Text
+- ⚠️ **CRITICAL**: `tostring({1, 2})` returns `"1; 2"` (single string). Use `touniformstring({1, 2})` to get `{"1", "2"}` (array)
+
+**Examples:**
+```sail
+/* Basic conversions */
+tointeger("123")  /* Returns 123 */
+todecimal("123.45")  /* Returns 123.45 */
+tointeger(123.45)  /* Returns 123 (truncates!) */
+
+/* Array to string - GOTCHA */
+tostring({1, 2, 3})  /* Returns "1; 2; 3" (single string) */
+touniformstring({1, 2, 3})  /* Returns {"1", "2", "3"} (array) */
+
+/* Type introspection */
+typeof(123)  /* Returns type number for Integer */
+typename(typeof(123))  /* Returns "Number (Integer)" */
+
+/* General-purpose casting */
+cast(typeof(a!map()), ri!record)  /* Cast record to map */
+cast(recordType!Employee, ri!employeeMap)  /* Cast map to record */
+```
 
 ---
 

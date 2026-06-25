@@ -90,6 +90,135 @@ These functions exist and work correctly but have caveats:
 
 ---
 
+## Complete Function Reference
+
+**Quick lookup table with official signatures from Appian documentation.**
+
+For detailed usage patterns, examples, and gotchas, see the sections below.
+
+**Documentation URLs:** Full documentation available at `https://docs.appian.com/suite/help/{VERSION}/{filename}`  
+Where **{VERSION}** is the Appian version configured in [SKILL.md Configuration section](../SKILL.md#configuration) (currently 26.5), and **{filename}** is from the Documentation column below.
+
+| Function | Signature | Returns | Documentation | Purpose |
+|----------|-----------|---------|---------------|---------|
+| a!addDateTime() | a!addDateTime(startDateTime, years, months, days, hours, minutes, seconds, useProcessCalendar, processCalendarName) | Date and Time | fnc_date_and_time_adddatetime.html | Adds the specified increments of time to the startDateTime and returns a date and time value |
+| a!aggregationFields() | a!aggregationFields(groupings, measures) | Aggregation Fields | fnc_scripting_a_aggregationfields.html | Defines query aggregations against record data using groupings and measures within a!queryRecordType() |
+| a!defaultValue() | a!defaultValue(value, default) | Any Type | fnc_informational_a_defaultvalue.html | Returns a default value when the specified value is null or empty |
+| a!flatten() | a!flatten(array) | Any Type Array | fnc_array_a_flatten.html | Converts an array that contains other arrays into an array of single items |
+| a!forEach() | a!forEach(items, expression) | Any Type Array | fnc_looping_a_foreach.html | Evaluates an expression for each item in a list and returns a new array of the results |
+| a!fromJson() | a!fromJson(jsonText) | Dictionary/List | fnc_system_a_fromjson.html | Converts a JSON string into an Appian value with automatic casting to appropriate data types |
+| a!grouping() | a!grouping(field, interval, alias, formatValue) | Grouping | Grouping_Component.html | Determines the fields to group by in a query or chart that uses a record type as the source |
+| a!isNotNullOrEmpty() | a!isNotNullOrEmpty(value) | Boolean | fnc_informational_isnotnullorempty.html | Returns false if the value is null, an empty string, or an empty list; otherwise returns true |
+| a!isNullOrEmpty() | a!isNullOrEmpty(value) | Boolean | fnc_informational_isnullorempty.html | Returns true if the value is null, an empty string, or an empty list; otherwise returns false |
+| a!jsonPath() | a!jsonPath(value, expression) | Text | fnc_system_a_jsonpath.html | Finds and extracts information from a JSON string using JSONPath syntax to navigate through elements and attributes |
+| a!keys() | a!keys(value) | List | fnc_informational_a_keys.html | Returns the keys of the provided map, dictionary, CDT, or record |
+| a!localVariables() | a!localVariables(localVar1, localVarN, expression) | Any Type | fnc_evaluation_a_localvariables.html | Defines one or more local variables for use within an expression |
+| a!map() | a!map(key1, keyN) | Map | fnc_system_map.html | Creates a map of values with each value stored at the corresponding string key |
+| a!match() | a!match(value, equals, then, whenTrue, then, default) | Any Type | fnc_logical_match.html | Evaluates a value against multiple conditions and returns a result based on the first match found |
+| a!measure() | a!measure(field, function, alias, label, filters, formatValue) | Measure | Measure_Component.html | Determines the numerical values to display on a query, chart, or KPI by performing calculations on record fields |
+| a!pagingInfo() | a!pagingInfo(startIndex, batchSize, sort) | PagingInfo | fnc_system_a_paginginfo.html | Creates a PagingInfo value for controlling data pagination and sorting in grids, queries, and data subsets |
+| a!queryFilter() | a!queryFilter(field, operator, value, applyWhen) | QueryFilter | fnc_system_a_queryfilter.html | Creates a QueryFilter value for filtering record data or data store entities in queries, grids, charts, and user filters |
+| a!queryLogicalExpression() | a!queryLogicalExpression(operator, logicalExpressions, filters, ignoreFiltersWithEmptyValues) | LogicalExpression | fnc_system_a_querylogicalexpression.html | Creates a LogicalExpression that determines how multiple filter conditions are combined in a query using AND, OR, or AND_ALL operators |
+| a!queryRecordByIdentifier() | a!queryRecordByIdentifier(recordType, identifier, fields, relatedRecordData) | Record Type | fnc_system_a_queryrecordbyidentifier.html | Executes a query on a specific record identifier and returns that record's data, including optional related record data |
+| a!queryRecordType() | a!queryRecordType(recordType, fields, filters, pagingInfo, fetchTotalCount, relatedRecordData) | Map with fields: success (Boolean), data (List of Records or List of Maps), startIndex (Integer), batchSize (Integer), sort (List of SortInfo), totalCount (Integer), identifiers (List of Integer or List of Text), errorCode (Text) | fnc_system_queryrecordtype.html | Executes a query on a given record type and returns the result, supporting both selection and aggregation of record data |
+| a!recordData() | a!recordData(recordType, filters, relatedRecordData, fields) | RecordData | fnc_system_recorddata.html | References a set of records from a record type and allows additional filtering in read-only grids, charts, or selection components |
+| a!relatedRecordData() | a!relatedRecordData(relationship, limit, sort, filters) | List of RelatedRecordData | fnc_system_relatedrecorddata.html | References a one-to-many relationship on a record type and enables additional filtering, sorting, and limiting of the related record set |
+| a!save() | a!save(target, value) | Save | fnc_evaluation_save.html | Updates a target variable with a given value within a component's saveInto parameter during user interface interactions |
+| a!subtractDateTime() | a!subtractDateTime(startDateTime, years, months, days, hours, minutes, seconds, useProcessCalendar, processCalendarName) | Date and Time | fnc_date_and_time_subtractdatetime.html | Subtracts specified time increments from a starting date/time value and returns the resulting date and time |
+| a!toJson() | a!toJson(value, removeNullOrEmptyFields) | Text | fnc_system_a_tojson.html | Converts a value into a JSON string, with optional removal of null or empty fields |
+| a!update() | a!update(data, index, value) | Any Type | fnc_array_a_update.html | Inserts new values or replaces existing values at the specified index or field name and returns the resulting updated data |
+| and() | and(value) | Boolean | fnc_logical_and.html | Returns true if all inputs are true; returns false if at least one input is false |
+| append() | append(array, value) | Any Type Array | fnc_array_append.html | Appends a value or values to the given array and returns the resulting array |
+| apply() | apply(function, list, context) | Any Type Array | fnc_looping_apply.html | Calls a rule or function for each item in a list and provides any contexts specified |
+| choose() | choose(key, choice1, choiceN) | Any Type | fnc_logical_choose.html | Evaluates the choice argument at the given index and returns the result |
+| cleanwith() | cleanwith(text, with) | Text | fnc_text_cleanwith.html | Returns the specified text minus any characters not in the list of valid characters |
+| concat() | concat(text) | Text | fnc_text_concat.html | Concatenates the specified strings into one string without a separator |
+| contains() | contains(array, value) | Boolean | fnc_set_contains.html | Checks whether an array contains the specified value |
+| count() | count(value) | Number | fnc_statistical_count.html | Returns the number of items in all arrays passed to the function |
+| date() | date(year, month, day) | Date | fnc_date_and_time_date.html | Converts year, month, and day integer values into a date data type |
+| dateTime() | dateTime(year, month, day, hour, minute, second, millisecond) | Date and Time | fnc_date_and_time_datetime.html | Converts the given Date and Time into a serial number that holds the Date and Time data type |
+| datevalue() | datevalue(value) | Date with Timezone | fnc_date_and_time_datevalue.html | Converts a value to a date |
+| difference() | difference(array1, array2) | Any Type Array | fnc_set_difference.html | Returns the values in array1 and not in array2 |
+| edate() | edate(starting_date, months) | Date | fnc_date_and_time_edate.html | Returns the date that is the specified number of months before or after a given starting date |
+| eomonth() | eomonth(starting_date, months) | Date | fnc_date_and_time_eomonth.html | Returns the date for the last day of the month that is the number of months before or after the given starting date |
+| false() | false() | Boolean | fnc_logical_false.html | Returns the Boolean value false |
+| filter() | filter(predicate, list, context) | Any Type Array | fnc_looping_filter.html | Calls a predicate for each item in a list and returns any items for which the returned value is true |
+| find() | find(search_text, within_text, start_num) | Number | fnc_text_find.html | Searches text for a substring and returns the positional index of the first character of the first match |
+| group() | group(groupId, property) | Text | fnc_people_group.html | Returns information for a specified group based on the provided group ID and property parameter |
+| if() | if(condition, valueIfTrue, valueIfFalse) | Any Type | fnc_logical_if.html | Returns valueIfTrue if the condition evaluates to true; otherwise returns valueIfFalse |
+| index() | index(data, index, default) | Any Type | fnc_array_index.html | Returns data[index] if it is valid or else returns the default value |
+| insert() | insert(array, value, index) | Any Type Array | fnc_array_insert.html | Inserts a value into the given array at a specified index and returns the resulting array |
+| intersection() | intersection(array1, array2) | Any Type Array | fnc_set_intersection.html | Returns only those elements that appear in all of the given arrays |
+| isnull() | isnull(value) | Boolean | fnc_informational_isnull.html | Returns true if value is null, false otherwise |
+| left() | left(text, num_chars) | Text | fnc_text_left.html | Returns a specified number of characters from the beginning of a text string |
+| len() | len(text) | Number | fnc_text_len.html | Returns the length in characters of the text |
+| length() | length(array) | Integer | fnc_array_length.html | Returns the number of elements in an array, excluding null values in most cases |
+| loggedInUser() | loggedInUser() | User | fnc_people_loggedinuser.html | Returns the current user logged in to the application |
+| lower() | lower(text) | Text | fnc_text_lower.html | Converts all characters in the text into lowercase |
+| max() | max(number) | Decimal | fnc_statistical_max.html | Returns the maximum of the specified number(s) |
+| merge() | merge(list) | Any Type | fnc_looping_merge.html | Takes a variable number of lists and merges them into a single list that is the size of the largest list provided |
+| min() | min(number) | Decimal | fnc_statistical_min.html | Returns the minimum value from the specified number(s) or array of numbers |
+| not() | not(value) | Boolean | fnc_logical_not.html | Converts true into false, and false into true |
+| now() | now() | Date and Time with Timezone | fnc_date_and_time_now.html | Returns the current date and time as a serial number |
+| or() | or(value) | Boolean | fnc_logical_or.html | Returns true if any inputs are true; returns false if all inputs are false |
+| property() | property(bean, nameOfProperty, valueIfMissing) | Any Type | fnc_scripting_property.html | Extracts a bean's property value using a specified key name, returning a default value if the property is not present |
+| rand() | rand(count) | Decimal | fnc_mathematical_rand.html | Returns a random number between 0 and 1 based on an even probability distribution, which is seeded by the transaction time |
+| reduce() | reduce(function, initial, list, context) | Any Type | fnc_looping_reduce.html | Calls a rule or function for each item in a list, passing the result of each call to the next one, and returns the value of the last computation |
+| remove() | remove(array, index) | Any Type Array | fnc_array_remove.html | Removes the value at a given index from an array and returns the resulting array |
+| right() | right(text, num_chars) | Text | fnc_text_right.html | Returns a specified number of characters from the text, starting from the last character |
+| split() | split(text, separator) | Text Array | fnc_text_split.html | Splits text into a list of text elements, delimited by the text specified in the separator |
+| stripwith() | stripwith(text, with) | Text | fnc_text_stripwith.html | Returns the provided text with any characters from the invalid characters list removed |
+| substitute() | substitute(text, find, replace_with) | Text | fnc_text_substitute.html | Substitutes a specific part of a string with another string |
+| text() | text(value, format) | Text | fnc_text_text.html | Converts Number, Date, Time, or Date and time values into formatted text strings |
+| time() | time(hour, minute, second, millisecond) | Time | fnc_date_and_time_time.html | Converts the given time into an equivalent time value |
+| todate() | todate(value) | Date with Timezone | fnc_conversion_todate.html | Converts a value to Date with Timezone |
+| todatetime() | todatetime(value) | Date and Time with Timezone | fnc_conversion_todatetime.html | Converts a value to Date and Time with Timezone format |
+| today() | today() | Date with Timezone | fnc_date_and_time_today.html | Returns the current day in Greenwich Mean Time (GMT) |
+| tostring() | tostring(value) | Text | fnc_conversion_tostring.html | Converts a value to Text with array values concatenated into one string |
+| touniformstring() | touniformstring(value) | Text | fnc_conversion_touniformstring.html | Converts a value or list to text, preserving the original scalar or array structure |
+| trim() | trim(text) | Text | fnc_text_trim.html | Removes all unnecessary spaces from the text leaving only single spaces between words |
+| true() | true() | Boolean | fnc_logical_true.html | Returns the Boolean value true |
+| union() | union(array1, array2) | Any Type Array | fnc_set_union.html | Returns all unique elements from the given arrays |
+| upper() | upper(text) | Text | fnc_text_upper.html | Converts all letters in the text into uppercase |
+| user() | user(username, property) | Text | fnc_people_user.html | Returns information for a user based on their username and a specified property field |
+| where() | where(booleanArray, default) | Integer Array | fnc_array_where.html | Returns the indexes where the values in the input array are true |
+| wherecontains() | wherecontains(values, array) | Integer Array | fnc_array_wherecontains.html | Receives one or more values and returns an array of indexes that indicate the position of the values within the array |
+
+---
+
+## When to Search Full Documentation
+
+The table above covers **commonly used functions** loaded for every expression rule. For functions not in this table or when you need deeper details, search the full documentation.
+
+**When to use the Documentation column:**
+
+1. **Complex functions (5+ parameters)** - use Documentation column filename with WebFetch
+2. **Validation errors** - function signature correct but behavior unclear
+3. **Return type details** - need to understand complex return structures (e.g., a!queryRecordType().data vs .totalCount)
+4. **Edge cases** - parameter constraints, null handling, type coercion rules
+
+**How to search:**
+
+Use the **Documentation column filename** to construct the full URL:
+```
+https://docs.appian.com/suite/help/{VERSION}/{filename}
+```
+
+Where:
+- **{VERSION}** = The Appian version configured in SKILL.md (currently 26.5)
+- **{filename}** = Value from Documentation column (e.g., `fnc_date_and_time_adddatetime.html`)
+
+**Example:**
+- Function: `a!addDateTime()`
+- Documentation column: `fnc_date_and_time_adddatetime.html`
+- Full URL: `https://docs.appian.com/suite/help/26.5/fnc_date_and_time_adddatetime.html`
+- Use **WebFetch** tool to retrieve the official documentation page
+
+**For functions not in this table:**
+See [expressions.md](expressions.md#when-you-need-more) for the complete documentation lookup workflow.
+
+---
+
 ## JSON Functions
 
 ```sail

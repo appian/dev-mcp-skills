@@ -755,6 +755,10 @@ pagingInfo: a!pagingInfo(
 
 **Rule:** Any filter whose `value` comes from a variable MUST include `applyWhen` to handle null/empty values.
 
+**CRITICAL: Use `applyWhen`, NOT `reject()` + `if()`**
+
+Do NOT build filter arrays with `reject(fn!isnull, {if(...)})`. See anti-patterns section for why this is wrong.
+
 ```sail
 a!queryRecordType(
   recordType: 'recordType!Case',
@@ -787,6 +791,59 @@ a!queryRecordType(
   fetchTotalCount: true
 ).data
 ```
+
+**❌ ANTI-PATTERN: Do NOT use `reject()` + `if()` to build filter arrays**
+
+```sail
+/* ❌ WRONG - Convoluted, unmaintainable, violates Appian conventions */
+local!filters: reject(
+  fn!isnull,
+  {
+    if(
+      a!isNotNullOrEmpty(ri!priorityId),
+      a!queryFilter(field: '...priorityId', operator: "=", value: ri!priorityId),
+      null
+    ),
+    if(
+      a!isNotNullOrEmpty(ri!statusId),
+      a!queryFilter(field: '...statusId', operator: "=", value: ri!statusId),
+      null
+    )
+  }
+),
+filters: local!filters  /* Then pass to query */
+
+/* ✅ CORRECT - Use applyWhen directly (it exists for this exact purpose!) */
+filters: a!queryLogicalExpression(
+  operator: "AND",
+  filters: {
+    a!queryFilter(
+      field: '...priorityId',
+      operator: "=",
+      value: ri!priorityId,
+      applyWhen: a!isNotNullOrEmpty(ri!priorityId)
+    ),
+    a!queryFilter(
+      field: '...statusId',
+      operator: "=",
+      value: ri!statusId,
+      applyWhen: a!isNotNullOrEmpty(ri!statusId)
+    )
+  }
+)
+```
+
+**Why the reject() pattern is wrong:**
+1. **Adds unnecessary complexity**: 2 extra functions + 2 if() statements vs built-in feature
+2. **Harder to maintain**: Adding a filter requires modifying wrapper logic
+3. **Not idiomatic**: `applyWhen` parameter exists specifically for conditional filters
+4. **Performance overhead**: Building intermediate array vs compile-time optimization
+5. **Less readable**: Intent is obscured by structural code
+
+**When to use `a!queryLogicalExpression` wrapper:**
+- Use it when you have 2+ filters (even if all are conditional)
+- Use it to set `operator: "AND"` or `operator: "OR"` explicitly
+- Do NOT skip it to avoid wrapping — Appian expects this structure
 
 ### Nested Logical Expressions (AND + OR)
 
@@ -1214,6 +1271,68 @@ a!queryFilter(
 )
 ```
 
+### ❌ Building Filter Arrays with reject() and if()
+
+```sail
+/* WRONG - Using reject() + if() to conditionally add filters */
+a!localVariables(
+  local!filters: reject(
+    fn!isnull,
+    {
+      if(
+        a!isNotNullOrEmpty(ri!priorityId),
+        a!queryFilter(field: 'recordType!Case.fields.priorityId', operator: "=", value: ri!priorityId),
+        null
+      ),
+      if(
+        a!isNotNullOrEmpty(ri!statusId),
+        a!queryFilter(field: 'recordType!Case.fields.statusId', operator: "=", value: ri!statusId),
+        null
+      )
+    }
+  ),
+  a!queryRecordType(
+    recordType: 'recordType!Case',
+    fields: {...},
+    filters: local!filters,  /* Built array passed here */
+    pagingInfo: a!pagingInfo(startIndex: 1, batchSize: 100),
+    fetchTotalCount: true
+  ).data
+)
+
+/* CORRECT - Use applyWhen directly in filter definitions */
+a!queryRecordType(
+  recordType: 'recordType!Case',
+  fields: {...},
+  filters: a!queryLogicalExpression(
+    operator: "AND",
+    filters: {
+      a!queryFilter(
+        field: 'recordType!Case.fields.priorityId',
+        operator: "=",
+        value: ri!priorityId,
+        applyWhen: a!isNotNullOrEmpty(ri!priorityId)
+      ),
+      a!queryFilter(
+        field: 'recordType!Case.fields.statusId',
+        operator: "=",
+        value: ri!statusId,
+        applyWhen: a!isNotNullOrEmpty(ri!statusId)
+      )
+    }
+  ),
+  pagingInfo: a!pagingInfo(startIndex: 1, batchSize: 100),
+  fetchTotalCount: true
+).data
+```
+
+**Why reject() pattern is wrong:**
+- **Built-in feature ignored**: `applyWhen` exists specifically for conditional filters
+- **Unnecessary complexity**: Adds 2 functions + 2 if statements + intermediate variable
+- **Harder to maintain**: Adding filters requires modifying wrapper logic, not just appending
+- **Performance overhead**: Runtime array building vs compile-time filter evaluation
+- **Not idiomatic Appian**: Violates platform conventions
+
 ### ❌ Wrong Property Access for Aggregations
 
 ```sail
@@ -1248,7 +1367,8 @@ local!count: local!counts[1].total
 - [ ] Include `pagingInfo: a!pagingInfo(startIndex: 1, batchSize: N)`
 - [ ] Include `fetchTotalCount: true`
 - [ ] Use `sort` (not `sorts`) **inside** pagingInfo
-- [ ] Add `applyWhen` to filters with variable values
+- [ ] Add `applyWhen` to filters with variable values (NOT reject() + if())
+- [ ] Use `a!queryLogicalExpression` wrapper even for 2+ conditional filters
 - [ ] Use `logicalExpressions` parameter for nested logic
 - [ ] Check for empty results before accessing `.data`
 - [ ] Use field references for regular queries, aliases for aggregations

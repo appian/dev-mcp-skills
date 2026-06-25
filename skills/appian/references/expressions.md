@@ -1,5 +1,15 @@
 # Expression Rules and Patterns Reference
 
+This reference provides architectural guidance for expression rules: management patterns (create vs update vs version), common use cases, performance considerations, and best practices.
+
+**⚠️ IMPORTANT: Before writing ANY expression, load [function-reference.md](function-reference.md) for:**
+- Anti-hallucination list (regexmatch doesn't exist!)
+- Function signatures and parameters
+- Working code examples (email validation, queries)
+- Appian-specific gotchas (find() is 1-indexed, union() validator workaround)
+
+---
+
 ## Table of Contents
 
 **Fundamentals**
@@ -7,6 +17,9 @@
 - [Type System](#type-system)
 - [Object Reference Patterns](#object-reference-patterns)
 - [Inline Expressions vs. Expression Rules](#inline-expressions-vs-expression-rules)
+
+**Creating Expression Rules**
+- [Gathering Expression Rule Requirements](#gathering-expression-rule-requirements)
 
 **Expression Rule Management**
 - [Expression Rule Management](#expression-rule-management) (overview)
@@ -210,6 +223,370 @@ Choose the right approach based on reuse and complexity:
 - Create expression rules when logic is reused across multiple objects, when the logic is complex enough to benefit from a descriptive name, or when the logic needs independent testing
 - Expression rules are called with `rule!` prefix and accept typed inputs via `ri!` parameters
 - Name expression rules with an application prefix: `rule!MYAPP_CalculateRiskScore(score: ri!creditScore)`
+
+<a name="gathering-expression-rule-requirements"></a>
+## Gathering Expression Rule Requirements
+
+**CRITICAL:** Before creating an expression rule, ensure you have complete requirements. Clarifying is cheaper than rework.
+
+### When to Ask for Clarification
+
+**ALWAYS ask the user for details when the request is missing:**
+- **Input specification** - What data goes in? (names, types, required vs optional)
+- **Output specification** - What comes out? (type, format, structure)
+- **Business logic** - What are the rules? What validation is needed?
+- **Edge cases** - How to handle null, empty, invalid data?
+- **Scope** - Basic implementation or production-grade with comprehensive validation?
+
+**Critical principle:** Even when reasonable defaults exist (e.g., standard query patterns), **always confirm** input parameters, returned fields, and business logic before implementing. The cost of asking is low; the cost of mismatched expectations is high.
+
+---
+
+### Common Ambiguous Requests
+
+| Request | Missing Information | What to Ask |
+|---------|-------------------|-------------|
+| "Create a validation rule" | Return type, validation rules | "Should this return: (1) Boolean true/false, (2) Error message text, or (3) Validation map with isValid + errors? What fields need validation and what are the rules?" |
+| "Query cases" | Fields, filters, sorting, batch size | "Which fields should be returned? Any specific filters? Should results be sorted? How many records (batch size)?" |
+| "Calculate total" | What to sum, filters, null handling | "Calculate total of which field? Should any records be excluded? How should null values be handled?" |
+| "Email validation" | Validation depth, return type | "Should this be: (1) Basic validation (check for @), or (2) Production-grade (format, length, character validation)? Return boolean or error message?" |
+| "Format date" | Format string, timezone, null handling | "What date format? (e.g., 'MM/DD/YYYY', 'YYYY-MM-DD')? Should timezone be considered? How to handle null dates?" |
+| "Transform data" | Specific transformation logic | "What transformation is needed? Can you provide an example of input → expected output?" |
+
+---
+
+### Requirements Checklist
+
+Before creating an expression rule, gather these details:
+
+**1. Inputs**
+- [ ] Input names (follow camelCase convention)
+- [ ] Input types (Text, Number, Boolean, User, Record, Date, etc.)
+- [ ] Which inputs are required vs optional?
+- [ ] Default values for optional inputs (if any)
+- [ ] Expected ranges or constraints (e.g., "score between 0-100")
+
+**Example questions:**
+```
+"What inputs does this rule need? For each input:
+- Name?
+- Type? (Text, Number, Boolean, etc.)
+- Required or optional?
+- Any validation constraints?"
+```
+
+**2. Output**
+- [ ] Return type (Text, Number, Boolean, Record, Array, Map, etc.)
+- [ ] Return format (for Text: is there a specific format? for Number: integer or decimal?)
+- [ ] For validation rules: Boolean, error message (Text), or validation map?
+- [ ] For queries: Array of records with specific fields, or full records?
+
+**Example questions:**
+```
+"What should this rule return?
+- Boolean true/false?
+- Error message text?
+- Validation map with {isValid: Boolean, errors: Text array}?
+- Record data? If so, which fields?"
+```
+
+**3. Business Logic**
+- [ ] What are the rules/conditions?
+- [ ] How to handle edge cases? (null, empty, invalid data)
+- [ ] Are there multiple validation rules? (email + date range + required fields)
+- [ ] Performance considerations? (large data sets, complex queries)
+
+**Example questions:**
+```
+"What are the validation rules?
+- Email: required? valid format? max length?
+- Dates: range validation? start before end?
+- Text fields: max length? allowed characters?
+
+How should edge cases be handled?
+- Null or empty inputs?
+- Invalid data?"
+```
+
+**4. Scope**
+- [ ] Basic implementation or production-grade?
+- [ ] Related record data needed? (for queries)
+- [ ] Sorting/paging required? (for queries)
+- [ ] Should results include specific related fields? (e.g., status.label, priority.label)
+
+**Example questions:**
+```
+"Should this be:
+1. Basic validation (minimal checks)?
+2. Production-grade validation (comprehensive checks)?
+
+For queries:
+- Which record type fields should be returned?
+- Include related record data? (e.g., status label, priority label)
+- Sorting needed? If so, by which field?
+- Batch size? (default: 100 for queries)"
+```
+
+---
+
+### Example: Clarifying a Validation Request
+
+**User request:**
+> "Create a validation rule for email"
+
+**Ambiguities:**
+- Return type? (Boolean vs error message vs validation map)
+- Validation depth? (Basic @ check vs production-grade format validation)
+- Input type? (Single email vs array of emails)
+
+**Good clarification response:**
+```
+I'll create an email validation rule. A few questions to ensure I build what you need:
+
+1. Return type - should this return:
+   • Boolean (true if valid, false if invalid)
+   • Error message text (null if valid, message if invalid)
+   • Validation map ({isValid: Boolean, errors: Text array})
+
+2. Validation depth:
+   • Basic: Check for @ symbol and non-empty
+   • Production-grade: Check format, max length (255), no spaces, valid characters, domain structure
+
+3. Input:
+   • Single email (Text)
+   • Array of emails (Text array)
+
+Recommendation: Production-grade validation returning Boolean for reusable logic.
+Is this correct?
+```
+
+---
+
+### Example: Clarifying a Query Request
+
+**User request:**
+> "Query cases assigned to a user"
+
+**Ambiguities:**
+- Which fields to return?
+- Filter by status/priority?
+- Include related record data?
+- Sorting needed?
+- Batch size?
+
+**Good clarification response:**
+```
+I'll create a query rule for cases. To build this correctly, I need to know:
+
+1. Which Case fields should be returned?
+   • All fields?
+   • Specific fields? (e.g., id, title, description, status, priority)
+
+2. Filters beyond "assigned to user":
+   • Filter by status? (e.g., "Open" or "In Progress")
+   • Filter by priority? (e.g., "High" or "Critical")
+
+3. Related record data:
+   • Include status label?
+   • Include priority label?
+   • Any other related fields?
+
+4. Sorting:
+   • Sort by creation date (newest first)?
+   • Sort by another field?
+
+5. Batch size:
+   • Default 100 records?
+   • Different size needed?
+
+Recommendation based on common pattern:
+- Fields: id, title, description, assignedTo, createdAt
+- Related: status.id, status.label, priority.id, priority.label
+- Sort: createdAt descending
+- Batch: 100
+
+Does this match what you need?
+```
+
+---
+
+### Example: Clarifying "Get Cases by Priority"
+
+**User request:**
+> "Get cases by priority"
+
+**Why this needs clarification despite having standard query patterns:**
+Even though queries have conventions (batch size 100, sort by createdAt, etc.), the core requirements are ambiguous.
+
+**Good clarification response:**
+```
+I'll create a rule to get cases by priority. To ensure I build what you need:
+
+1. Priority input parameter:
+   • priorityId (Number) - filter by priority ID?
+   • priorityLabel (Text) - filter by priority label like "High", "Critical"?
+   • Both options available?
+
+2. Which Case fields should be returned?
+   • All fields (id, title, description, dates, assigned user, etc.)?
+   • Specific subset? (e.g., just id + title + priority)
+
+3. Include related data?
+   • Status information (id + label)?
+   • Assigned user information?
+
+4. Any additional filters beyond priority?
+   • Only open cases?
+   • Only assigned cases?
+
+Recommendation: 
+- Input: Both priorityId and priorityLabel (OR logic, flexible)
+- Fields: All case fields
+- Related: status.id, status.label, priority.id, priority.label
+- Sort: createdAt descending (standard)
+- Batch: 100 (standard)
+
+Does this match your needs?
+```
+
+**Why not assume "reasonable defaults":**
+- User might want simpler output (just id + title) for performance
+- User might want single input type (ID only or label only)
+- User might want additional filters (status = "Open")
+- Confirming prevents rework when assumptions don't match user's mental model
+
+---
+
+### Anti-Patterns: Don't Make These Assumptions
+
+**❌ WRONG: Assuming validation depth**
+```
+User: "Create email validation"
+AI: [Creates basic @ check without asking]
+Result: User expected production-grade validation with format rules
+```
+
+**❌ WRONG: Assuming return type**
+```
+User: "Create validation for case form"
+AI: [Returns Boolean without asking]
+Result: User needed error messages for display in form
+```
+
+**❌ WRONG: Assuming query scope**
+```
+User: "Query cases"
+AI: [Returns all fields + all related data without asking]
+Result: Performance issue; user only needed id + title
+```
+
+**✅ CORRECT: Ask first, build second**
+```
+User: "Create email validation"
+AI: "Should this return Boolean or error message? Basic validation or production-grade?"
+User: "Production-grade, return Boolean"
+AI: [Creates comprehensive validation with correct return type]
+Result: Matches user's mental model on first attempt
+```
+
+---
+
+### When NOT to Ask (Apply Defaults Silently)
+
+Some details have standard conventions and don't need clarification:
+
+**Naming conventions:**
+- Use application prefix automatically (CM_ for Case Management app)
+- Use camelCase for inputs (no need to ask)
+- Use descriptive verb+noun names (ValidateEmail, QueryCases, CalculateTotal)
+
+**Query implementation details (AFTER confirming inputs/fields/filters):**
+- Batch size 100 for queries
+- Sort queries by creation date descending
+- Return `.data` from queries (array of records)
+- Include id + label format for related lookup tables (status.id, status.label)
+
+**Default behaviors:**
+- Trim text inputs before validation
+- Use `a!defaultValue()` for optional inputs
+- Apply null safety patterns automatically
+
+**What you MUST still ask about (even when standard patterns exist):**
+- **Input parameters** - Even for standard queries, confirm: "Should priority be a rule input? If so, priorityId (Number) or priorityLabel (Text)?"
+- **Returned fields** - Even for standard queries, confirm: "Which Case fields should be returned? All fields or specific ones?"
+- **Filters** - Even for standard queries, confirm: "Any additional filters beyond priority (e.g., status = 'Open')?"
+- **Return type for validations** - Boolean, error message, or validation map?
+- **Validation depth** - Basic or production-grade?
+
+**Principle:** 
+- Clarify **behavior and requirements** (inputs, outputs, business logic), not **conventions** (naming, null safety, standard patterns)
+- When in doubt between asking and assuming → **ask**
+- Standard patterns are applied AFTER requirements are confirmed, not instead of confirmation
+
+---
+
+## Before Implementing Custom Logic
+
+**MANDATORY: Check if built-in function exists before writing custom logic**
+
+If your expression requires any of these operations, search Appian docs FIRST:
+
+- **Distance/geographic calculations** → search "distance"
+- **Encryption/hashing** → search "encrypt", "hash"  
+- **Date arithmetic (working days, business days)** → search "workday", "networkday"
+- **Data transformations (JSON, XML, CSV)** → search "json", "xml", "csv"
+- **String parsing beyond basic functions** → search relevant keywords
+- **Mathematical operations beyond basic math** → search "math", function name
+
+### How to Search for Functions
+
+**Step 1: Search functions.json by keyword**
+
+```bash
+# Read configured version from SKILL.md Configuration section
+VERSION="26.5"
+
+# Cache functions.json if not already cached
+if [ ! -f /tmp/appian-functions-$VERSION.json ]; then
+  curl -s "https://docs.appian.com/suite/help/$VERSION/functions.json" \
+    > /tmp/appian-functions-$VERSION.json
+fi
+
+# Search for function by keyword (case-insensitive)
+jq -r 'keys[] | select(test("distance|encrypt|workday"; "i"))' \
+  /tmp/appian-functions-$VERSION.json
+```
+
+**Step 2: If matches found, fetch documentation**
+
+See SKILL.md "Appian Documentation Search" section for complete workflow to:
+- Fetch the documentation page
+- Extract function signature and parameters
+- Use in your expression
+
+**Step 3: Use built-in if exists, implement custom if not**
+
+### Why This Matters
+
+**Built-in functions:**
+- ✅ Battle-tested by Appian
+- ✅ Optimized for performance
+- ✅ Handle edge cases correctly
+- ✅ Maintained by platform
+- ✅ Shorter, cleaner code
+
+**Custom implementations:**
+- ❌ More complex and error-prone
+- ❌ Harder to maintain
+- ❌ May miss edge cases
+- ❌ Untested in production
+- ❌ Requires deep domain knowledge
+
+**Example:** Calculating distance between coordinates:
+- Built-in: `a!distanceBetween(startLat, startLon, endLat, endLon, "MILES")` (1 line)
+- Custom: Haversine formula implementation (~40 lines with trig, conversions, validation)
+
+---
 
 <a name="expression-rule-management"></a>
 ## Expression Rule Management
@@ -588,13 +965,17 @@ union(ri!listWithDuplicates, ri!listWithDuplicates)
 
 Build validation expressions for user input.
 
-**⚠️ CRITICAL: Use these patterns EXACTLY as shown below.**
+**⚠️ CRITICAL: Before writing validation logic:**
+1. **Load [function-reference.md](function-reference.md)** - Check anti-hallucination list (regexmatch doesn't exist!)
+2. **Use the email validation pattern from function-reference.md** - It's tested and working (50 lines of code)
+3. **Follow these patterns EXACTLY** - Do not improvise or modify
 
 **Do NOT:**
 - Generate your own validation logic from training data or general knowledge
 - Modify these patterns unless the user explicitly requests different behavior
 - Invent alternative validation approaches
 - Use functions that are not shown in these examples
+- Try to use regexmatch(), regex(), or any regex functions (they don't exist in Appian)
 
 **These patterns are tested against the actual Appian environment and use only available functions. Follow them precisely.**
 
@@ -1278,6 +1659,29 @@ a!map(
 ---
 
 <a name="when-you-need-more"></a>
+## When Documentation Lookup Is Needed
+
+If expression validation fails with function-related errors and the function is not documented in function-reference.md, use the documentation search workflow defined in SKILL.md.
+
+**Trigger conditions:**
+1. `validateExpression` returns error mentioning unknown/invalid function
+2. Function not found in function-reference.md
+3. User explicitly asks about a function not in our docs
+
+**Process:**
+1. **Check if function exists** via functions.json (see SKILL.md for workflow)
+2. If not found → function doesn't exist, check anti-hallucination list for alternatives
+3. If found → fetch documentation page
+4. **Extract signature** and create expression using official documentation
+5. **Re-validate** with `validateExpression` tool
+6. **Optional:** If function is commonly used, suggest adding to function-reference.md
+
+**Version:** Uses the configured version from SKILL.md Configuration section.
+
+**Automatic vs Manual:** Automatically fetch docs when function not found. No user prompt needed - fetching is fast and non-disruptive.
+
+---
+
 ## When You Need More
 
 This file covers expression patterns and best practices. For object-specific guidance:

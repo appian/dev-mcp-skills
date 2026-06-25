@@ -336,6 +336,44 @@ This 15-step sequence ensures a complete, working data model with full bidirecti
 - Both record types must exist before either relationship can be added
 - `sourceRecordTypeFieldUuid` and `targetRecordTypeFieldUuid` must be real field UUIDs from create/get responses — never fabricate them
 
+### Querying with relationships
+
+When creating a query that includes related fields, **you must retrieve field UUIDs from BOTH the base record type AND all related record types**:
+
+**Discovery workflow:**
+1. `getRecordType(baseRecordTypeUuid)` → get base fields and relationship UUIDs
+2. For each related record type referenced in the query:
+   - `getRecordType(relatedRecordTypeUuid)` → get related record type's field UUIDs
+3. Build query using UUIDs from both
+
+**Why this matters:**
+- Base record type response includes relationship UUIDs but NOT the field UUIDs from related record types
+- You cannot guess or fabricate field UUIDs for related fields
+- Without proper UUIDs, queries fail with "field was invalid" errors
+
+**Example:**
+```
+Goal: Query Case with related Status fields
+
+1. getRecordType(caseUuid) → discover:
+   - Case field UUIDs: id, title, statusId
+   - Relationship UUID: status → links to Status record type
+
+2. getRecordType(statusUuid) → discover:
+   - Status field UUIDs: id, label, sortOrder
+
+3. Build query:
+   'recordType!{caseUuid}.fields.{idUuid}id',
+   'recordType!{caseUuid}.relationships.{statusRelUuid}status.fields.{statusIdUuid}id',
+   'recordType!{caseUuid}.relationships.{statusRelUuid}status.fields.{labelUuid}label'
+```
+
+**Common mistake:**
+```
+❌ getRecordType(caseUuid) only → guess Status field UUIDs → query fails
+✅ getRecordType(caseUuid) + getRecordType(statusUuid) → use real UUIDs → query succeeds
+```
+
 ### Record actions
 - `contextExpr` keys must match process model parameter names (case-sensitive)
 - `icon` is a Font Awesome hex code (e.g., `"f044"`), not a name (not `"pencil"`)

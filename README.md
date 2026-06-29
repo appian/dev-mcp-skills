@@ -48,6 +48,45 @@ git clone https://github.com/appian/dev-mcp-skills.git .cursor/rules/appian
 
 Copy `skills/appian/` into wherever your IDE loads context/instruction files from. The directory is self-contained.
 
+## Prerequisites
+
+### Required: Appian MCP Tools
+
+Install the [Appian MCP tools](https://docs.appian.com/suite/help/latest/devmcp.html) to create/modify Appian objects (record types, interfaces, process models, etc.).
+
+### Recommended: Appian Documentation Search
+
+Install the official Appian documentation search MCP server for enhanced pattern discovery:
+
+**Benefits:**
+- Access to 200+ official recipes (query, function, interface)
+- UI/UX patterns (drilldown, filtering, grids, forms)
+- Design best practices and performance guidelines
+- 75% fewer validation errors in testing
+
+**Installation:**
+
+Add to your `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "appian-public-docs": {
+      "type": "http",
+      "url": "https://appian-docs-public.mcp.kapa.ai"
+    }
+  }
+}
+```
+
+**Authentication:** OAuth via Google or GitHub (one-time setup)
+
+**Rate limits:** 300 requests/day, 60/minute (very generous for typical usage)
+
+**Optional:** The skill works without this tool by using skill references only. With the tool installed, Claude automatically enriches skill knowledge with official documentation when needed.
+
+See [Three-Tier Documentation Lookup Strategy](skills/appian/SKILL.md#three-tier-documentation-lookup-strategy) for details.
+
 ## Configuration
 
 **Appian Version:** The skill uses your Appian version for documentation lookups. Configure it in `skills/appian/SKILL.md`:
@@ -55,76 +94,71 @@ Copy `skills/appian/` into wherever your IDE loads context/instruction files fro
 ```markdown
 ## Configuration
 
-**Appian Version:** 26.5
+**Appian Version:** 26.6
 ```
 
-Change this value to match your Appian environment (26.5, 26.3, 25.4, 25.3, 25.2, 25.1, 24.4, or 24.3).
+Change this value to match your Appian environment (26.6, 26.5, 26.3, 25.4, 25.3, 25.2, 25.1, 24.4, or 24.3).
 
 This affects:
-- Documentation URL lookups when the skill searches Appian docs
+- Documentation URL lookups (Tier 2: functions.json)
 - Function availability checks
 - Version-specific guidance
 
-### Documentation Search Examples
+### Three-Tier Documentation Lookup
 
-The skill automatically searches Appian documentation in three scenarios:
+The skill uses a three-tier strategy to enrich its knowledge when skill references lack sufficient detail:
 
-#### Scenario 1: Function Discovery (User describes what, not function name)
+**Tier 1: Skill References** (always check first)
+- 58 curated functions with patterns and anti-patterns
+- Detailed examples for complex scenarios
+- May exceed official docs in depth
+
+**Tier 2: functions.json + curl** (function lookups)
+- Definitive function existence checks
+- Official signatures for 495 total functions
+- Version-specific, deterministic lookups
+
+**Tier 3: Documentation Search Tool** (patterns & recipes - requires optional MCP server)
+- 200+ official recipes (query, function, interface)
+- UI/UX patterns (drilldown, filtering, grids)
+- Design best practices and performance guidelines
+- Semantic search for "how to" questions
+
+#### Example: Pattern Discovery with Tier 3
+
 ```
-You: "Create an expression rule that calculates the distance in miles between 
-     two locations. The rule accepts start latitude, start longitude, end 
-     latitude, and end longitude."
+You: "Create a grid with drilldown pattern to show order details"
 
-AI: [Loads expressions.md, sees "Before Implementing Custom Logic" section]
-    [Recognizes "distance" and "coordinates" as trigger keywords]
-    [Searches functions.json: jq 'keys[] | select(test("distance"; "i"))']
-    [Finds: a!distancebetween]
-    [Fetches documentation from Appian docs]
-    [Creates expression using built-in function + meter-to-mile conversion]
+AI: [Loads interfaces.md, sail.md - basic grid info only]
+    [Recognizes "drilldown" is a specific pattern not detailed in references]
+    [Searches Tier 3: "What is the drilldown pattern for grids in Appian?"]
+    [Finds: Official drilldown recipe with grid + detail view example]
+    [Combines skill references (anti-patterns) + search results (official pattern)]
+    [Implements using official Appian drilldown pattern]
 
-Result: Clean 20-line implementation using a!distanceBetween() instead of 
-        40-line custom Haversine formula
-```
-
-**Common triggers:** distance/coordinates, encrypt/hash, working days, JSON/XML parsing, mathematical operations
-
-#### Scenario 2: Explicit Function Lookup (User names the function)
-```
-You: "What parameters does a!startProcess() accept?"
-
-AI: [Checks function-reference.md - not found]
-    [Searches functions.json for "a!startprocess"]
-    [Finds: /suite/help/26.5/Start_Process_Smart_Service.html]
-    [Fetches documentation page]
-    [Extracts signature and parameters]
-
-Result: Complete function signature:
-        a!startProcess(processModel, processParameters, isSynchronous, 
-                       onSuccess, onError, onIncomplete)
-        with descriptions for all 6 parameters
+Result: Grid with proper drilldown implementation, 1 minor error vs 4 errors 
+        when inventing pattern from scratch (75% error reduction)
 ```
 
-#### Scenario 3: Validation Error Recovery
+#### Example: Function Lookup with Tier 2
+
 ```
-You: [AI creates expression with wrong a!relatedRecordData() syntax]
+You: "Does the function regexmatch() exist in Appian?"
 
-AI: [validateExpression returns error: "Invalid parameter 'sortBy'"]
-    [Automatically searches functions.json for a!relatedRecordData]
-    [Fetches official documentation]
-    [Corrects parameter: sortBy → sort]
-    [Re-validates successfully]
+AI: [Checks function-reference.md anti-hallucination list]
+    [Confirms: regexmatch() does NOT exist]
+    [Suggests alternatives: like(), find(), search()]
 
-Result: Fixed expression without manual doc lookup
+Result: Definitive "No" with correct alternatives, prevents false positive
 ```
 
 **How it works:**
-1. **58 curated functions** in reference files (common use cases, documented with patterns)
-2. **437 additional functions** via automatic search (on-demand, as needed)
-3. **Keyword-based discovery** before implementing custom logic (new!)
-4. **Session caching** for fast subsequent lookups
-5. **Tool-agnostic** bash/curl/jq commands (works across all AI tools)
+1. **Tier 1 first:** Check skill references (curated, instant)
+2. **Tier 2 for functions:** Existence checks and signatures (fast, exact)
+3. **Tier 3 for patterns:** Recipes and best practices (semantic search)
+4. **Combine sources:** Skill references + official docs = enriched knowledge
 
-See `skills/appian/SKILL.md` for the complete search workflow.
+See [Documentation Lookup Strategy](skills/appian/references/documentation-lookup-strategy.md) for complete workflows, curl commands, error handling, and examples.
 
 ## Usage
 
@@ -145,7 +179,7 @@ The AI loads the skill on demand based on the task — you don't need to referen
 2. `README.md` - This Configuration section
 3. Remove oldest version (typically 2 years old)
 
-**Last version update:** 2026-06-25
+**Last version update:** 2026-06-26
 
 ## Contributing
 

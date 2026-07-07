@@ -8,6 +8,7 @@
 - [Process Variables](#process-variables)
 - [Start Forms](#start-forms)
 - [Nodes and Flow](#nodes-and-flow)
+- [Custom Inputs and Outputs](#custom-inputs-and-outputs)
 - [Node Configuration Patterns](#node-configuration-patterns)
 - [Flow Patterns](#flow-patterns)
 - [Complete Example](#complete-example)
@@ -95,7 +96,7 @@ Connect an interface as a start form using `startForm`:
 }
 ```
 
-`inputMap` keys = process variable names (without `pv!`), values = interface input names (without `ri!`).
+`inputMap` keys = interface input names (without `ri!`), values = process variable names (without `pv!`).
 
 ## Nodes and Flow
 
@@ -135,9 +136,24 @@ Use the node type discovery tools to list all available node types and get the i
 
 Discover exact input names and required fields before configuring unfamiliar node types. The schema ID table above covers common types — use the node type listing tool for the full catalog.
 
+## Custom Inputs and Outputs
+
+These conventions apply across all node types that use `data.customInputs` or `data.outputs`:
+
+**Expression prefix (`=`):** The `expression` field on customInputs and outputs requires the `=` prefix to be evaluated as an expression. Without it, the value is stored as a literal string.
+- ✅ `"expression": "=pv!status"` → evaluates the process variable
+- ❌ `"expression": "pv!status"` → stored as the literal text "pv!status"
+
+**`saveInto`:** Use on any customInput whose value the user will modify and that must flow back to a process variable after node completion. Read-only inputs only need `expression`. The value is a bare PV name (e.g. `"pv!decision"`).
+
+**`inputMap` on forms:** Maps interface inputs to their data sources. Keys are always interface input names (without `ri!` prefix). Values depend on context:
+- Start forms: PV names (without `pv!` prefix)
+- Task forms: ACP names (from `customInputs`)
+- Existing configurations may use expressions as values (e.g. `"requestId": "=pv!requestId"`) — these are valid for backward compatibility but prefer the ACP pattern when creating new nodes.
+
 ## Node Configuration Patterns
 
-Four distinct patterns for how nodes are configured:
+Four distinct patterns for how nodes are configured.
 
 ### Gateway pattern: `decision`
 
@@ -174,23 +190,36 @@ Script Task (`internal.16`) — schema returns empty inputs/outputs, use `data.o
 }
 ```
 
-### Attended activity pattern: `assignment` + `forms`
+### Attended activity pattern: `assignment` + `data.customInputs` + `forms`
 
-User Input Task (`internal.17`) — uses `forms` with interface reference:
+User Input Task (`internal.17`) — uses ACPs (customInputs) to bridge process variables into the form, and `forms.inputMap` to wire ACPs to interface inputs.
+
+**Always use ACPs for attended tasks** — consistent, extensible (add `saveInto` later without restructuring), matches Designer UI behavior.
 
 ```json
 {
-  "id": 2, "type": "internal.17", "name": "Employee Form",
+  "id": 2, "type": "internal.17", "name": "Approval Task",
   "coordinates": [250, 200], "connections": [3],
-  "assignment": {"attended": true},
+  "assignment": {"attended": true, "assignTo": "pp!initiator"},
+  "data": {
+    "customInputs": [
+      {"name": "requestId", "expression": "=pv!requestId"},
+      {"name": "decision", "expression": "=pv!decision", "saveInto": "pv!decision"},
+      {"name": "comment", "expression": "=pv!comment", "saveInto": "pv!comment"}
+    ]
+  },
   "forms": {
     "interfaceUuid": "<interface-uuid>",
-    "inputMap": {"employee": "employee", "cancel": "cancel"}
+    "inputMap": {
+      "requestId": "requestId",
+      "decision": "decision",
+      "comment": "comment"
+    }
   }
 }
 ```
 
-`inputMap` keys = interface input names (without `ri!`), values = process variable names (without `pv!`).
+Start forms do NOT need ACPs — they map PV names directly because at process start, PVs are directly accessible without an intermediate activity scope.
 
 ### Schema-defined inputs pattern: `assignment` + `data.inputs`
 
@@ -262,6 +291,12 @@ Start(1) → Script(2) → UserInput(3) → WriteRecords(4) → End(5)
       "id": 2, "type": "internal.17", "name": "Employee Form",
       "coordinates": [250, 200], "connections": [3],
       "assignment": {"attended": true},
+      "data": {
+        "customInputs": [
+          {"name": "employee", "expression": "=pv!employee", "saveInto": "pv!employee"},
+          {"name": "cancel", "expression": "=pv!cancel", "saveInto": "pv!cancel"}
+        ]
+      },
       "forms": {
         "interfaceUuid": "<form-interface-uuid>",
         "inputMap": {"employee": "employee", "cancel": "cancel"}
@@ -312,7 +347,7 @@ Start(1) → Script(2) → UserInput(3) → WriteRecords(4) → End(5)
 - **End Event with connections** — must have `connections: []`
 - **Missing Start Event** — every PM needs exactly one `core.0`
 - **XOR without conditions** — needs `decision.conditions` for branching logic
-- **Mismatched interface input names in start form** — `inputMap` values must match interface inputs exactly
+- **Mismatched interface input names in inputMap** — `inputMap` keys must match interface input names exactly
 - **Updating without existing nodes** — replaces entire node list; include all existing nodes
 - **Interface must exist before referencing** — create interface before PM references it
 - **Forgetting cancel handling** — forms with Cancel need XOR after User Input to check cancel variable

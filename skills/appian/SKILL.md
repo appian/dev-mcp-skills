@@ -128,7 +128,7 @@ Use the Resource Reference Map above to identify which reference file matches yo
 - Creating record types → Load `references/record-types.md` AND `references/data-modeling.md`
 - Adding relationships → Load `references/relationship-patterns.md`
 - Building interfaces → Load `references/interfaces.md`, `references/expressions.md`, AND `references/sail.md`
-- Creating process models → Load `references/process-models.md` AND `references/node-types.md`
+- Creating process models → Load `references/process-models.md`
 
 **Why expressions.md for interfaces:**
 Interfaces contain complex SAIL expressions requiring the same patterns as expression rules:

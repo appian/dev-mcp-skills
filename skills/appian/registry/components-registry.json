@@ -1,0 +1,1855 @@
+{
+  "a!formLayout": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Form Layout",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [
+      "Use titleBar parameter for title, NOT label - label parameter does not exist"
+    ],
+    "instructionFile": "layouts/form-layout-instructions.md"
+  },
+  "a!headerContentLayout": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Header Content Layout",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/layouts/header-content-layout-instructions.md"
+  },
+  "a!paneLayout": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Pane Layout",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/layouts/pane-layout-instructions.md"
+  },
+  "a!wizardLayout": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Wizard Layout",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!wizardStep"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/layouts/wizard-layout-instructions.md"
+  },
+  "a!headerTemplateImage": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Image Header Template",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!sidebarTemplate": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Sidebar Template",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!headerTemplateSimple": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Simple Header Template",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!wizardStep": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Wizard Step",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!wizardLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!billboardLayout": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Billboard Layout",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": [
+      "a!barOverlay",
+      "a!columnOverlay",
+      "a!fullOverlay"
+    ],
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!boxLayout": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Box Layout",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!cardGroupLayout": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Card Group Layout",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!cardLayout": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Card Layout",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!headerContentLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/layouts/card-layout-instructions.md"
+  },
+  "a!columnsLayout": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Columns Layout",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": [
+      "a!columnLayout"
+    ],
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/layouts/columns-layout-instructions.md"
+  },
+  "a!sectionLayout": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Section Layout",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!cardLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [
+      "Does NOT have showBorder parameter - use divider parameters or wrap in a!cardLayout instead"
+    ],
+    "instructionFile": "layouts/section-layout-instructions.md"
+  },
+  "a!sideBySideLayout": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Side By Side Layout",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": [
+      "a!sideBySideItem"
+    ],
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/layouts/sidebyside-layout-instructions.md"
+  },
+  "a!tabLayout": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Tab Layout",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": [
+      "a!tabItem"
+    ],
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/layouts/tab-layout-instructions.md"
+  },
+  "a!barOverlay": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Bar Overlay",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!billboardLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!columnOverlay": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Column Overlay",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!billboardLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!fullOverlay": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Full Overlay",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!billboardLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!columnLayout": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Column Layout",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!columnsLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!sideBySideItem": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Side By Side Item",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!sideBySideLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!tabItem": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Tab Item",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!tabLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!validationMessage": {
+    "exists": true,
+    "category": "Layouts",
+    "officialName": "Validation Message",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!barcodeField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Barcode",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!chatField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Chat",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!dataFabricChatbot": {
+    "exists": false,
+    "category": "Inputs",
+    "officialName": "Data Fabric Chatbot",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Not found in official documentation - may be preview/unreleased"
+  },
+  "a!dateField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Date",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!dateTimeField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Date and Time",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!floatingPointField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Decimal (Floating Point)",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!documentsChatbot": {
+    "exists": false,
+    "category": "Inputs",
+    "officialName": "Documents Chatbot",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Not found in official documentation - may be preview/unreleased"
+  },
+  "a!encryptedTextField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Encrypted Text",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!fileUploadField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "File Upload",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!integerField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Integer",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!paragraphField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Paragraph",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!recordsChatbot": {
+    "exists": false,
+    "category": "Inputs",
+    "officialName": "Records Chatbot",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Not found in official documentation - may be preview/unreleased"
+  },
+  "a!signatureField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Signature",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!styledTextEditorField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Styled Text Editor",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!textField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Text",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!chatMessage": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Chat Message",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!agentChatField": {
+    "exists": true,
+    "category": "Inputs",
+    "officialName": "Agent Chat",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!booleanCheckboxField": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Boolean Checkbox",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!checkboxByIndexField": {
+    "exists": false,
+    "category": "Selection",
+    "officialName": "Checkbox By Index",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Index-based fields do not exist in Appian"
+  },
+  "a!checkboxField": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Checkbox",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [
+      "Use disabled parameter for toggle, NOT readOnly - readOnly parameter does not exist for checkboxes"
+    ]
+  },
+  "a!dropdownByIndexField": {
+    "exists": false,
+    "category": "Selection",
+    "officialName": "Dropdown By Index",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Index-based fields do not exist in Appian"
+  },
+  "a!dropdownField": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Dropdown",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [
+      "Use disabled parameter for toggle, NOT readOnly - readOnly parameter does not exist for dropdowns"
+    ]
+  },
+  "a!multipleDropdownByIndexField": {
+    "exists": false,
+    "category": "Selection",
+    "officialName": "Multiple Dropdown By Index",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Index-based fields do not exist in Appian"
+  },
+  "a!multipleDropdownField": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Multiple Dropdown",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!radioButtonByIndexField": {
+    "exists": false,
+    "category": "Selection",
+    "officialName": "Radio Button By Index",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Index-based fields do not exist in Appian"
+  },
+  "a!radioButtonField": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Radio Button",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!toggleField": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Toggle",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!documentViewerField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Document Viewer",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!gaugeField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Gauge",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!headingField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Heading",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!imageField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Image",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/image-field-instructions.md"
+  },
+  "a!kpiField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "KPI",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!messageBanner": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Message Banner",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!milestoneField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Milestone",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!progressBarField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Progress Bar",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!richTextDisplayField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Rich Text Display",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/rich-text-instructions.md"
+  },
+  "a!stampField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Stamp",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/stamp-field-instructions.md"
+  },
+  "a!tagField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Tag",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!tagItem": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Tag Item",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!videoField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Video",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!webContentField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Web Content",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!gaugeFraction": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Gauge Fraction",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!gaugeIcon": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Gauge Icon",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!gaugePercentage": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Gauge Percentage",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!documentImage": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Document Image",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!userImage": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "User Image",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!webImage": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Web Image",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!textItem": {
+    "exists": false,
+    "category": "Display",
+    "officialName": "Text Item",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "No standalone textItem component - use a!richTextItem or styled text"
+  },
+  "a!webVideo": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Web Video",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!buttonArrayLayout": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Button Array Layout",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!buttonLayout": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Button Layout",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!linkField": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!recordActionField": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Record Actions",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!recordActionItem": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Record Action Item",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!buttonWidget": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Button",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/button-instructions.md"
+  },
+  "a!authorizationLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Authorization Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!documentDownloadLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Document Download Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!dynamicLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Dynamic Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!newsEntryLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "News Entry Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!processTaskLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Process Task Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!recordLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Record Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!reportLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Report Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!safeLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Safe Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!startProcessLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Start Process Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!submitLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "Submit Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!userRecordLink": {
+    "exists": true,
+    "category": "Action",
+    "officialName": "User Record Link",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!gridLayout": {
+    "exists": true,
+    "category": "Grids and Lists",
+    "officialName": "Editable Grid",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/grid-layout-instructions.md"
+  },
+  "a!eventHistoryListField": {
+    "exists": true,
+    "category": "Grids and Lists",
+    "officialName": "Event History List",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!gridColumn": {
+    "exists": true,
+    "category": "Grids and Lists",
+    "officialName": "Read-Only Grid Column",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!gridHeader": {
+    "exists": false,
+    "category": "Grids and Lists",
+    "officialName": "Editable Grid Header",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Not a standalone component - use a!gridLayoutHeaderCell in a!gridRowLayout"
+  },
+  "a!gridRow": {
+    "exists": false,
+    "category": "Grids and Lists",
+    "officialName": "Editable Grid Row",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Not a standalone component - use a!gridRowLayout"
+  },
+  "a!eventData": {
+    "exists": true,
+    "category": "Grids and Lists",
+    "officialName": "Event Data",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!areaChartField": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Area Chart",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/chart-instructions.md"
+  },
+  "a!barChartField": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Bar Chart",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/chart-instructions.md"
+  },
+  "a!columnChartField": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Column Chart",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/chart-instructions.md"
+  },
+  "a!lineChartField": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Line Chart",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/chart-instructions.md"
+  },
+  "a!pieChartField": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Pie Chart",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/chart-instructions.md"
+  },
+  "a!scatterChartField": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Scatter Chart",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/chart-instructions.md"
+  },
+  "a!areaChartConfig": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Area Chart Config",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!barChartConfig": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Bar Chart Config",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!chartCustomColorScheme": {
+    "exists": false,
+    "category": "Charts",
+    "officialName": "Chart Custom Color Scheme",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "reason": "Not a component - use colorScheme parameter in chart components"
+  },
+  "a!chartReferenceLine": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Chart Reference Line",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!chartSeries": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Chart Series",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!columnChartConfig": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Column Chart Config",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!grouping": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Grouping",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!lineChartConfig": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Line Chart Config",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!measure": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Measure",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pieChartConfig": {
+    "exists": true,
+    "category": "Charts",
+    "officialName": "Pie Chart Config",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!orgChartField": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "Org Chart",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!richTextEditor": {
+    "exists": false,
+    "reason": "No rich text editor component exists in Appian",
+    "alternatives": [
+      {
+        "component": "a!paragraphField",
+        "useCase": "For multi-line text input"
+      },
+      {
+        "component": "a!styledTextEditorField",
+        "useCase": "For rich text editing with formatting toolbar"
+      },
+      {
+        "component": "a!richTextDisplayField",
+        "useCase": "For displaying formatted text (read-only)"
+      }
+    ],
+    "hasInstructionFile": false
+  },
+  "a!gridField": {
+    "exists": true,
+    "category": "Grids and Lists",
+    "officialName": "Grid Field",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md#agridfield",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [
+      "showSearchBox only works with recordType! data sources - NEVER use with local data (a!map arrays)",
+      "showRefreshButton only works with recordType! data sources - NEVER use with local data (a!map arrays)",
+      "recordActions only works with recordType! data sources - NEVER use with local data (a!map arrays)"
+    ],
+    "instructionFile": "references/components/grid-field-instructions.md"
+  },
+  "a!cardChoiceField": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Card Choices",
+    "hasInstructionFile": true,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": [],
+    "instructionFile": "references/components/card-choice-field-instructions.md"
+  },
+  "a!cardTemplateBarTextJustified": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Bars Template",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!cardTemplateBarTextStacked": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Bars Stacked Template",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!cardTemplateTile": {
+    "exists": true,
+    "category": "Selection",
+    "officialName": "Tiles Template",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pickerFieldCustom": {
+    "exists": true,
+    "category": "Pickers",
+    "officialName": "Custom Picker",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pickerFieldDocuments": {
+    "exists": true,
+    "category": "Pickers",
+    "officialName": "Document Picker",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pickerFieldDocumentsAndFolders": {
+    "exists": true,
+    "category": "Pickers",
+    "officialName": "Document and Folder Picker",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pickerFieldFolders": {
+    "exists": true,
+    "category": "Pickers",
+    "officialName": "Folder Picker",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pickerFieldGroups": {
+    "exists": true,
+    "category": "Pickers",
+    "officialName": "Group Picker",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pickerFieldRecords": {
+    "exists": true,
+    "category": "Pickers",
+    "officialName": "Record Picker",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pickerFieldUsers": {
+    "exists": true,
+    "category": "Pickers",
+    "officialName": "User Picker",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pickerFieldUsersAndGroups": {
+    "exists": true,
+    "category": "Pickers",
+    "officialName": "User and Group Picker",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!documentBrowserFieldColumns": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "Document Browser",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!documentAndFolderBrowserFieldColumns": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "Document and Folder Browser",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!folderBrowserFieldColumns": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "Folder Browser",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!groupBrowserFieldColumns": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "Group Browser",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!hierarchyBrowserFieldColumns": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "Hierarchy Browser (Columns)",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!hierarchyBrowserFieldTree": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "Hierarchy Browser (Tree)",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!userBrowserFieldColumns": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "User Browser",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!userAndGroupBrowserFieldColumns": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "User and Group Browser",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!hierarchyBrowserFieldColumnsNode": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "Hierarchy Browser Node (Columns)",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!hierarchyBrowserFieldTreeNode": {
+    "exists": true,
+    "category": "Browsers",
+    "officialName": "Hierarchy Browser Node (Tree)",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!formLayout",
+      "a!sectionLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!richTextBulletedList": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Bulleted List",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!richTextNumberedList": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Numbered List",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!richTextIcon": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Icon",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!richTextListItem": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "List Item",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!richTextImage": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Inline Image",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!horizontalLine": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Horizontal Line",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!timeDisplayField": {
+    "exists": true,
+    "category": "Display",
+    "officialName": "Time Display",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!pane": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Pane Component",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": [
+      "a!paneLayout"
+    ],
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  },
+  "a!headerTemplateFull": {
+    "exists": true,
+    "category": "Top-Level Layouts",
+    "officialName": "Full Header Template",
+    "hasInstructionFile": false,
+    "parameterReference": "component-reference.md",
+    "commonParents": null,
+    "requiredChildren": null,
+    "optionalChildren": null,
+    "criticalWarnings": []
+  }
+}

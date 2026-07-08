@@ -23,8 +23,9 @@ Load this file BEFORE creating, updating, or deleting any Appian objects. It def
 - [Universal Workflow 3: UUID Verification](#universal-workflow-3-uuid-verification)
 - [Universal Workflow 4: Ambiguous Request Clarification](#universal-workflow-4-ambiguous-request-clarification)
 - [Universal Workflow 5: Proactive Completion Patterns](#universal-workflow-5-proactive-completion-patterns)
-- [Universal Workflow 6: Rename/Update Confirmation](#universal-workflow-6-rename-update-confirmation)
-- [Universal Workflow 7: Dependency Checking](#universal-workflow-7-dependency-checking)
+
+**Other Guidance**
+- [Note on Renames](#note-on-renames)
 
 **Special Case Templates**
 - [Record Type Delete Special Case](#record-type-delete-special-case)
@@ -80,11 +81,65 @@ Is this a platform/skill MANDATORY requirement?
 
 ### When to Use
 
-Apply this workflow before ANY destructive operation:
+Apply this workflow before ANY DELETE operation:
 - Deleting applications, record types, fields, relationships, views, actions
 - Deleting expression rules, interfaces, constants, process models
-- Deleting groups, folders, documents, sites
-- Removing relationships or dependencies
+- Deleting groups, folders, documents, sites, connected systems, Web APIs
+- Removing rule inputs or making breaking changes
+
+**Key Principle:** Know what breaks BEFORE the user confirms the operation.
+
+---
+
+### Why Dependency Checking Matters
+
+**Without dependency checking:**
+- User deletes Status record type → all Issue records lose their status field reference
+- User deletes constant → all expressions using `cons!CONSTANT_NAME` break
+- User removes input from expression rule → all calling rules fail
+
+**With dependency checking:**
+- Present impact BEFORE user confirms
+- Offer alternatives (cascade delete, refactor, cancel)
+- Document what needs manual updates
+
+---
+
+### Tool Capabilities (Updated 2026-07-02)
+
+✅ **Expression-based dependency detection now available** via `getObjectDependents` MCP tool.
+
+**What we CAN check:**
+
+1. **Structural dependencies:**
+   - Record type relationships (MANY_TO_ONE, ONE_TO_MANY)
+   - Record type views, actions, user filters
+   - Record data existence
+   - Group hierarchy and members
+   - Application contained objects
+
+2. **Expression-based dependencies:**
+   - Which expressions reference a constant (cons!)
+   - Which rules/interfaces/Web APIs call an expression rule (rule!)
+   - Which objects reference a record type (recordType!)
+   - Which process models use record types in nodes/variables
+   - Which sites use interfaces as pages
+   - Exact line numbers where references occur
+
+**How it works:**
+- `getObjectDependents(uuid)` returns all design objects referencing the target
+- Response includes: dependent UUID, type, name, and breadcrumb showing exact location
+- Supports: Constants, Expression Rules, Record Types, Interfaces, Process Models, Web APIs, Sites, Connected Systems
+- Same object can appear multiple times (one entry per reference location)
+- Performance: < 2 seconds for 300+ dependents
+
+**What we still CANNOT check:**
+- Field-level dependencies (fields referenced by name, not UUID)
+- Hard-coded string references (group names, status values)
+- Document/folder references in expressions
+- Integration configurations
+
+---
 
 ### Risk Levels
 
@@ -95,183 +150,545 @@ Apply this workflow before ANY destructive operation:
 | **MEDIUM** | Affects single object, limited dependencies | View delete, Action delete | Yes/No confirmation |
 
 **Notes:** 
-- Constants were reclassified from MEDIUM to CRITICAL based on Phase 2.5 validation testing. Reason: Constants are name-based (`cons!NAME`) not UUID-based. Deleting breaks ALL expressions using that constant with no automatic updates.
-- Expression Rule breaking changes (input removal, input type change, return type change) are CRITICAL because they break ALL callers with no automatic updates. Expression Rule deletion without breaking changes remains HIGH.
+- Constants are CRITICAL because they're name-based (`cons!NAME`) not UUID-based. Deleting breaks ALL expressions using that constant with no automatic updates.
+- Expression Rule breaking changes (input removal, input type change, return type change) are CRITICAL because they break ALL callers with no automatic updates.
+
+---
 
 ### Workflow Steps
 
-1. **Receive delete request** from user
-   - User may provide name, UUID, or description
-   - May be explicit ("delete X") or implicit ("remove that")
+⚠️ **IMPORTANT:** Steps 4-6 describe your internal process. Only Step 7's output is shown to the user.
 
-2. **Verify object existence**
-   - Call appropriate `get` or `list` operation to resolve identifier
-   - If UUID provided, verify it's valid
-   - If name provided, resolve to UUID
-   - If ambiguous, ask for clarification
+**What user sees:** Final dependency presentation (Step 7 template)  
+**What user does NOT see:** "Step 4:", "✓ getObjectDependents()", "Calling...", processing details
 
-3. **Extract object details**
-   - Name, type, creation date, last modified
-   - Key metadata (number of fields, relationships, dependencies)
-   - Application context if applicable
+---
 
-4. **Check dependencies** (object-specific)
-   
-   **⚠️ IMPORTANT:** Use Universal Workflow 7 (Dependency Checking) to perform comprehensive dependency analysis.
-   
-   Universal Workflow 7 provides:
-   - Structural dependency checks (relationships, views, actions, data)
-   - Manual verification templates (for expression-based dependencies)
-   - 3-option presentation format (Cancel recommended / Proceed / Alternative)
-   - Clear communication of what will break
-   
-   **The confirmation message MUST include:**
-   1. Structural dependencies found (with counts)
-   2. Manual verification section (if expression-based checks not available)
-   3. Options with Cancel recommended until verification complete
-   
-   See [Universal Workflow 7: Dependency Checking](#universal-workflow-7-dependency-checking) for:
-   - Step-by-step dependency checking workflow
-   - Presentation templates
-   - Manual verification guidance templates
-   - Examples for each object type
+#### Step 1: Receive Delete Request
 
-5. **Present to user with consequences**
-   
-   **Use the template from Universal Workflow 7 (Step 4: Present Dependencies to User).**
-   
-   The confirmation MUST follow this structure:
-   ```
-   ⚠️ You are about to DELETE [ObjectType] "[Name]"
-   
-   Structural dependencies (confirmed):
-   ❌ [List all structural dependencies found]
-   
-   Manual verification required (cannot detect automatically):
-   ⚠️ [List expression-based dependencies that need manual checks]
-   
-   [Use manual verification template from Workflow 7]
-   
-   Impact:
-   - [List specific impacts]
-   
-   Options:
-   1. Cancel (recommended until manual verification complete)
-   2. Proceed with [OPERATION] (you are responsible for manual updates)
-   3. [Alternative approach if available]
-   
-   What would you like to do? (1/2/3)
-   ```
-   
-   For CRITICAL operations (Application, Record Type, Process Model, Constant delete):
-   - Replace "What would you like to do? (1/2/3)" with
-   - "Type 'DELETE [Name]' to confirm HIGH RISK operation."
-   
-   For CRITICAL breaking changes (Expression Rule input removal/type change):
-   - Keep "What would you like to do? (1/2/3)" format
-   - Present 3 alternatives (make optional / create v2 / cancel)
-   
-   **Use object-specific templates when available:**
-   - Record Type delete → See [Record Type Delete Special Case](#record-type-delete-special-case)
-   - Constant delete → See [Constant Delete Special Case](#constant-delete-special-case)
-   - Expression Rule breaking changes → See [Expression Rule Breaking Changes Special Case](#expression-rule-breaking-changes-special-case)
-   
-   **Example for HIGH risk:**
-   ```
-   You are about to DELETE the "assignedTo" field from the Case record type.
-   
-   This field is currently used in:
-   - 1 relationship (to User record type)
-   - 2 record views
-   - 1 record action security expression
-   
-   Deleting this field will break these references. Continue? (yes/no)
-   ```
+- User may provide name, UUID, or description
+- May be explicit ("delete X") or implicit ("remove that")
 
-6. **Execute delete operation**
-   - Only after user confirms with exact match (CRITICAL) or yes (HIGH/MEDIUM)
-   - Call appropriate MCP delete tool
-   - Inform user of success or failure
+---
 
-### Templates
+#### Step 2: Verify Object Existence
 
-**CRITICAL risk confirmation:**
+- Call appropriate `get` or `list` operation to resolve identifier
+- If UUID provided, verify it's valid
+- If name provided, resolve to UUID
+- If ambiguous, ask for clarification
+
+---
+
+#### Step 3: Extract Object Details
+
+- Name, type, creation date, last modified
+- Key metadata (number of fields, relationships, dependencies)
+- Application context if applicable
+
+---
+
+#### Step 4: Identify Operation Type
+
+Determine what kind of operation is being attempted:
+
+| Operation | Dependency Type | Check Method |
+|---|---|---|
+| **Phase 1A (Validated):** | | |
+| Delete constant | Expression references | Expression (Step 5) ✅ |
+| Delete expression rule | Calling rules/interfaces | Expression (Step 5) ✅ |
+| Delete record type | Relationships, views, actions, data, expressions | Expression (Step 5) + Structural (Step 6) ✅ |
+| **Phase 1B (Testing Required):** | | |
+| Delete interface | Calling objects, sites using it | Expression (Step 5) - validate in testing |
+| Delete process model | Calling objects | Expression (Step 5) - validate in testing |
+| Delete Web API | Calling expressions | Expression (Step 5) - validate in testing |
+| Delete connected system | Integrations using it | Expression (Step 5) ✅ |
+| **Structural Only:** | | |
+| Delete field | Related views/actions using field | Structural (Step 6 + see record-types.md) |
+| Delete group | Hierarchy, members | Structural (Step 6) + manual |
+| Delete application | Contained objects | Structural (Step 6) |
+| **Manual Fallback:** | | |
+| Remove rule input | Calling rules with that parameter | Manual fallback - parameter-level not supported |
+
+---
+
+#### Step 5: Check Expression Dependencies
+
+**CRITICAL: ALWAYS call `getObjectDependents` first. Do NOT skip to manual fallback unless the tool call fails.**
+
+**Process:**
+
+1. **Call `getObjectDependents(uuid)` - MANDATORY FIRST STEP**
+   - Returns list of dependents with uuid, type, name, breadcrumb
+   - Same object may appear multiple times (one per reference location)
+   - Supported for: constants, expression rules, interfaces, process models, Web APIs, connected systems, record types, applications, sites
+
+2. Deduplicate and group:
+   - Group by `type` (APPLICATION, CONSTANT, FREEFORM_RULE, INTERFACE, OUTBOUND_INTEGRATION, PROCESS_MODEL, RECORD_TYPE, SITE, WEB_API)
+   - Within each type, deduplicate by `uuid` to count unique objects
+   - Keep first 5 breadcrumbs per object for presentation
+
+3. Present:
+   - If < 10 unique objects per type: show all
+   - If 10+ unique objects per type: show first 10 returned + "...and N more (type 'details' for full list)"
+   - Breadcrumb format: "Interface Definition: Lines 19, 180, 186, 108, 109..." (first 5, then "...")
+   - Note: Tool returns objects in arbitrary order (not sorted by reference count)
+
+**ONLY if getObjectDependents call fails or returns an error:**
+
+Use manual verification fallback below. Do NOT use this fallback if the tool call succeeded (even if it returned zero dependencies).
+
+**Manual Verification Fallback (ONLY if getObjectDependents fails):**
+
 ```
-You are about to DELETE [ObjectType] "[Name]" (UUID: [uuid]).
+⚠️ Automatic dependency check failed.
 
-This will permanently delete:
-[List of affected objects with counts]
+Manual verification required:
+1. Search expression rules for "[OBJECT_NAME]" or "cons!CONSTANT_NAME"
+2. Search interfaces for hard-coded references
+3. Search process models for script task expressions
+4. Check Web APIs for usage in request/response expressions
 
-This action CANNOT be undone.
-
-To confirm, type: DELETE [Name]
+Use Appian Designer's "Find Usages" feature:
+- Open object in Designer
+- Right-click → "Find Usages" (if available for object type)
+- Review usage list before proceeding
 ```
 
-**HIGH/MEDIUM risk confirmation:**
-```
-You are about to DELETE [ObjectType] "[Name]".
+---
 
-[Optional: Impact statement if dependencies found]
+#### Step 6: Perform Structural Checks (When Applicable)
 
-Continue? (yes/no)
+**For Record Types:**
+- Relationships: getRecordType(uuid).relationships
+- Views: listRecordTypeViews(uuid)
+- Actions: listRecordTypeActions(uuid)
+- Data: listRecordData(uuid, limit=1)
+
+**For Groups:**
+- Hierarchy: listGroups() filtered by parentGroupUuid
+- Members: listGroupMembers(uuid)
+- Constants: listConstants() filtered by type=GROUP, check values
+
+**For Applications:**
+- Contained objects: listApplicationObjects(uuid)
+
+**For Fields (record type fields):**
+- Relationships: Check if field is sourceRecordTypeFieldUuid or targetRecordTypeFieldUuid in getRecordType(recordTypeUuid).relationships
+- Title expression: Check if titleExpression in getRecordType(recordTypeUuid) references field UUID
+- Views: Check if field displayed in listRecordTypeViews(recordTypeUuid)
+- Note: Cannot check expression-based dependencies (fields referenced by name: recordType!RT.fields.fieldName, not by UUID)
+
+---
+
+#### Step 7: Present Dependencies to User
+
+Present the final result using templates below. This is what the USER sees.
+
+**Do NOT show to user:**
+- Step numbers ("Step 5:", "Step 6:")
+- Tool calls ("✓ getObjectDependents(uuid) →", "Calling getRecordType...")
+- Processing details ("Deduplicating...", "Checking...")
+
+**DO show to user:**
+- Clean dependency list grouped by type
+- Clear impact statement ("will break N objects")
+- Action options (Cancel/Proceed/Details)
+
+**Use object-specific templates when available:**
+
+For these operations, use the specialized templates (more context, object-specific warnings):
+- **Constants** → Use [Constant Delete Special Case](#constant-delete-special-case) template
+- **Expression Rules (delete)** → Use [Expression Rule Delete Special Case](#expression-rule-delete-special-case) template
+- **Expression Rules (breaking changes)** → Use [Expression Rule Breaking Changes Special Case](#expression-rule-breaking-changes-special-case) template
+- **Record Types** → Use [Record Type Delete Special Case](#record-type-delete-special-case) template
+
+For all other operations, use generic template below.
+
+**Generic user-facing template:**
 ```
+⚠️ [OPERATION] will impact N design objects:
+
+Design object dependencies:
+❌ [Type]: N unique (M references)
+   - [Breadcrumb examples - see variations below]
+[Repeat for each type found]
+
+[If record types/groups: add Structural dependencies section]
+
+Impact: [What breaks - be specific]
+
+Options:
+1. Cancel (recommended - update N dependencies first)
+2. Proceed (you fix N broken references)
+3. [If 10+ dependents: add "Details (show full list)"]
+4. [Alternative if available]
+
+What would you like to do? (1/2/3/4)
+```
+
+**Variations:**
+
+**< 10 unique objects per type:**
+```
+❌ Interfaces: 2
+   - Interface Definition: Line 19
+   - Interface Definition: Line 108
+```
+
+**10+ unique objects per type:**
+```
+❌ Interfaces: 13 unique (322 references)
+   Top references:
+   - Interface Definition: Lines 19, 180, 186, 108, 109...
+   - Interface Definition: Lines 115, 116, 117, 118, 119...
+   [Show up to 10 unique objects]
+   ...and 3 more (type 'details' for full list)
+```
+
+**Record types - add after expression dependencies:**
+```
+Structural dependencies:
+❌ 2 relationships from other record types
+❌ 1 custom view
+❌ 4 record actions
+❌ 15,432 existing records
+```
+
+**If getObjectDependents fails:**
+```
+⚠️ Automatic dependency check unavailable: getObjectDependents tool failed.
+
+Falling back to manual verification:
+1. Search expression rules for "[OBJECT_NAME]"
+2. Use Appian Designer "Find Usages"
+
+[If applicable: Structural checks: ...]
+
+Continue with manual verification? (yes/no)
+```
+
+**If user requests "details":**
+
+When user types "details" after seeing "...and N more" in presentation:
+
+1. Show all unique objects (remove top 10 limit)
+2. Show all breadcrumbs per object (remove first 5 limit)
+3. Use same template structure, just not truncated
+4. Example:
+   ```
+   Full dependency list:
+   
+   ❌ Interfaces: 13 unique (322 references)
+      - Interface 1: Lines 19, 180, 186, 108, 109, 115, 116, 117, 118, 119, 120, 121...
+      - Interface 2: Lines 47, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64...
+      [All 13 interfaces shown with all breadcrumbs]
+   
+   ❌ Expression Rules: 1 unique (23 references)
+      - Expression Rule: Lines 61, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23...
+   ```
+
+---
+
+#### Step 8: Offer Resolution Strategies
+
+Based on operation type and dependencies found:
+
+**Safe cascade operations (offer if applicable):**
+- Delete record type → offer cascade delete related data (if updateTable=true supported)
+- Delete parent group → offer cascade delete child groups (if supported)
+
+**Refactoring alternatives (recommend):**
+- Instead of deleting constant → deprecate and create replacement
+- Instead of removing input → add new input, deprecate old (non-breaking change)
+
+**Manual update guidance:**
+- List specific files/objects requiring manual updates
+- Suggest search patterns for finding references
+- Document post-operation verification steps
+
+---
+
+#### Step 9: Get User Confirmation
+
+**MANDATORY: ALWAYS ask for user confirmation. DO NOT skip this step.**
+
+Present all findings from Step 7 (dependency check results) and Step 8 (resolution strategies if applicable), then **STOP and WAIT for user response**.
+
+**Confirmation format by object type:**
+
+**CRITICAL risk** (Application, Record Type, Process Model, Constant, Connected System):
+- Require typed confirmation: `Type 'DELETE [Name]' to confirm this operation.`
+- Must match exact name
+- **Required even if zero dependencies found**
+
+**HIGH/MEDIUM risk** (Expression Rule, Interface, Web API, Site):
+- Simple confirmation: `Proceed with deletion? (yes/no)`
+- **Required even if zero dependencies found**
+
+**IMPORTANT:** The risk level is determined by OBJECT TYPE, not dependency count. Even objects with zero blocking dependencies require confirmation because:
+- User may have changed their mind after seeing the analysis
+- Deletion is permanent and irreversible
+- This provides a final checkpoint before destructive action
+
+**If user declines:**
+- Abort operation
+- Do not proceed to Step 10
+- Inform user: "Deletion cancelled."
+
+---
+
+#### Step 10: Execute Delete Operation
+
+Only after user confirms:
+- Call appropriate MCP delete tool
+- Inform user of success or failure
+
+**Success message:**
+```
+✅ Deleted [ObjectType] "[Name]"
+
+[If dependencies existed: Remind user to update N dependent objects]
+```
+
+**Failure message:**
+```
+❌ Failed to delete [ObjectType] "[Name]"
+
+Error: [error message from tool]
+```
+
+---
+
+### Known Limitations
+
+**getObjectDependents cannot detect:**
+
+1. **Field-level dependencies**
+   - Fields are referenced by name in expressions: `recordType!RT.fields.fieldName`
+   - Tool tracks object-level dependencies by UUID only
+   - Use structural checks (relationships, views, title expression) + manual verification
+
+2. **Parameter-level dependencies**
+   - Cannot determine which parameters are passed to rule calls
+   - Tool shows "rule X calls rule Y" but not which parameters are used
+   - Required for "remove rule input" operations → use manual fallback
+
+3. **Hard-coded string references**
+   - Group names in text: `"PMS Administrators"`
+   - Status values: `"Open"`, `"Closed"`
+   - These are data values, not design object references
+
+4. **Integration expression properties**
+   - Integrations appear as dependents of connected systems (OUTBOUND_INTEGRATION type)
+   - But expressions inside integration properties may not be tracked
+   - Not yet validated - Phase 1B testing required
+
+5. **Document/folder expression references**
+   - Documents and folders may be referenced in expressions
+   - Not yet validated as tracked dependency types
+
+**For these limitations, use:**
+- Manual verification fallback (if getObjectDependents fails)
+- Structural checks (when applicable)
+- record-types.md: Field deletion specific checks
+
+---
+
+### Example Final Outputs
+
+These show what users see after you complete internal checks. Do NOT show "Step 5:" or tool call details to users.
+
+#### Example 1: Record Type Delete with Expression + Structural Dependencies
+
+**Operation:** Delete "PMS Status" record type
+
+**Your internal process (NOT shown to user):**
+```
+1. Receive request: "Delete PMS Status record type"
+2. Verify: getRecordType(uuid) → exists
+3. Extract: name, type, app context
+4. Identify: Delete record type → Expression + Structural
+5. Check expression deps: getObjectDependents(uuid) → 47 dependents
+6. Deduplicate → 5 unique interfaces, 2 unique rules, 1 unique PM
+7. Check structural: getRecordType(uuid) → 2 relationships, listRecordTypeViews → 1 view, listRecordData → 4 records
+8. Present using Record Type Delete Special Case template
+```
+
+**What user sees:**
+```
+⚠️ Cannot delete PMS Status: dependencies found
+
+Expression dependencies (automated check):
+❌ Interfaces: 5 unique (12 references) - will get "Unknown record type" errors
+   - Interface Definition: Lines 15, 22, 34
+   - Interface Definition: Lines 8, 45
+   - Interface Definition: Lines 12, 13, 14
+   ...and 2 more
+
+❌ Expression Rules: 2 unique (3 references) - will fail validation
+   - Expression Rule Definition: Line 10
+   - Expression Rule Definition: Lines 5, 18
+
+❌ Process Models: 1 unique (2 references) - nodes will fail
+   - Process Variable > "status" > Data Type
+   - Node > "Write Records" > Condition > Line: 1
+
+Structural dependencies (confirmed):
+❌ 2 record types reference Status:
+   - PMS Project (relationship: status)
+   - PMS Task (relationship: status)
+❌ 1 custom view: Status Grid
+❌ 4 status records exist (Created, Assigned, Approved, Closed)
+
+Impact:
+- 5 interfaces will break with "Unknown record type" errors
+- 2 expression rules will fail validation
+- 1 process model will have broken nodes/variables
+- Project and Task relationships will break
+- Status Grid view will fail to load
+- 4 status records will be deleted
+
+Options:
+1. Cancel (recommended - remove dependencies first)
+2. Proceed (HIGH RISK - breaks 8+ design objects)
+3. Details (show full dependency list)
+
+What would you like to do? (1/2/3)
+```
+
+---
+
+#### Example 2: Constant Delete with 1 Dependency
+
+**Operation:** Delete constant "CM_CASE_CONST"
+
+**Your internal process (NOT shown to user):**
+```
+1. Receive request: "Delete constant CM_CASE_CONST"
+2. Verify: getConstant(uuid) → exists
+3. Extract: name (CM_CASE_CONST), type (RECORD_TYPE), value (uuid)
+4. Identify: Delete constant → Expression deps
+5. Check expression deps: getObjectDependents(uuid) → 2 dependents (1 APPLICATION, 1 FREEFORM_RULE)
+6. Deduplicate → filter out APPLICATION → 1 unique rule
+7. Present using Constant Delete Special Case template
+```
+
+**What user sees:**
+```
+⚠️ CRITICAL: You are about to DELETE constant "CM_CASE_CONST"
+
+Constant details:
+- Type: RECORD_TYPE
+- Value: da7acb35-ea96-4cf7-accc-d06495ff21ac
+- UUID: _a-0000f003-31cb-8000-9baa-011c48011c48_8516
+
+Design object dependencies (automated check):
+❌ Expression Rules: 1
+   - Expression Rule Definition: Line 2
+
+What breaks if you proceed:
+❌ 1 expression rule will fail validation
+❌ All cons!CM_CASE_CONST references will become "Unknown constant" errors
+
+What's preserved:
+✅ The referenced record type itself (UUID da7acb35...) is NOT deleted
+✅ Other constants are not affected
+
+Impact: Deleting will break 1 object.
+
+Options:
+1. Cancel (recommended - update 1 dependency first)
+2. Proceed (you fix 1 broken reference)
+
+Alternative approach (RECOMMENDED):
+- Instead of deleting, consider if this constant is still needed
+- If migrating to a different pattern, update the constant's value first
+
+Type 'DELETE CM_CASE_CONST' to confirm HIGH RISK operation.
+```
+
+---
 
 <a name="record-type-delete-special-case"></a>
 ### Record Type Delete Special Case
 
+**PRESENTATION TEMPLATE - Used by Universal Workflow 1 Step 7**
+
+This is a template, not a workflow. Universal Workflow 1 handles:
+- ✅ Calling `getObjectDependents` (Step 5)
+- ✅ Performing structural checks (Step 6)
+- ✅ Deduplicating and grouping results (Step 5)
+- ✅ Choosing this template (Step 7)
+
+Your job: Present dependency results using the format below.
+
+---
+
 **Important:** `deleteRecordType` removes the **Appian metadata** (record type definition, relationships, views, actions) but does NOT drop the **database table**.
 
-**Use Universal Workflow 7 (Dependency Checking) first, then present confirmation using this template:**
+---
 
 ```
 ⚠️ You are about to DELETE record type "[Name]" (UUID: [uuid])
 
-This will permanently remove:
-- Appian record type definition (metadata layer)
-- [N] relationships to other record types
-- [N] record views
-- [N] record actions
-- [N] user filters
+Expression dependencies (automated check via getObjectDependents):
+[ONLY show object types that were actually returned. If zero of a type, skip it entirely.]
+
+[If any interfaces found:]
+❌ Interfaces: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
+   [Show all if < 10, otherwise show first 10 + "...and N more"]
+
+[If any expression rules found:]
+❌ Expression Rules: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
+
+[If any process models found:]
+❌ Process Models: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
+
+[If any Web APIs found:]
+❌ Web APIs: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
+
+[If zero expression dependencies found:]
+✅ No design objects reference this record type (checked automatically)
+
+Structural dependencies (from Step 6 structural checks):
+[If any relationships:] ❌ N relationships to other record types: [list names]
+[If any views:] ❌ N record views: [list names]
+[If any actions:] ❌ N record actions: [list names]
+[If any data:] ❌ N existing data records
+[If zero structural dependencies:] ✅ No relationships, views, actions, or data records
 
 Database impact:
-- The database table [TABLE_NAME] will be PRESERVED
-- [N] data records remain in the database but will no longer be accessible via Appian
-- To drop the table, manual database administration is required
+⚠️ The database table [TABLE_NAME] will be PRESERVED
+[If data exists:] ⚠️ N data records remain in database but will no longer be accessible via Appian
+⚠️ To drop the table, manual database administration is required
 
-Structural dependencies (confirmed):
-❌ [List relationships found via listRecordTypeRelationships]
-❌ [List views found via listRecordTypeViews]
-❌ [List actions found via listRecordTypeActions]
-❌ [List data found via listRecordData]
-
-Manual verification required (cannot detect automatically):
-⚠️ Interfaces using 'recordType!{uuid}[Name]'
-⚠️ Expression rules referencing this record type
-⚠️ Process models writing to this record type
-
-Manual verification REQUIRED:
-1. Search expression rules for "recordType!{uuid}[Name]"
-2. Search interfaces for "[Name]" record type references
-3. Search process models for record type references in:
-   - Start forms
-   - Script tasks
-   - Record actions
-
-Use Appian Designer:
-- Right-click record type → "Find Usages" (if available)
-- Global search for "[Name]" and review results
-
-What breaks:
-❌ All expressions using recordType!{uuid}[Name] will fail
-❌ All interfaces displaying this record type will error
-❌ All process models writing to this record type will fail
+Impact:
+[Build this dynamically based on what was actually found - don't list types with zero dependencies]
+[If interfaces found:] - N interfaces will break with "Unknown record type" errors
+[If expression rules found:] - N expression rules will fail validation
+[If process models found:] - N process models will have broken nodes/variables
+[If relationships found:] - N relationships will break
+[If views found:] - N views will fail to load
+[If data found:] - N records become inaccessible (table preserved)
 
 Options:
-1. Cancel (recommended until manual verification complete)
-2. Proceed with delete (you are responsible for fixing breaks)
+1. Cancel (recommended - remove dependencies first)
+2. Proceed (HIGH RISK - breaks [TOTAL] design objects)
+[If 10+ total dependencies:] 3. Details (show full dependency list)
 
 Type 'DELETE [Name]' to confirm HIGH RISK operation.
 ```
+
+**IMPORTANT:** 
+- Do NOT add "Manual verification required" text
+- Do NOT list object types that getObjectDependents didn't return
+- If getObjectDependents found 0 expression dependencies, say "✅ No design objects reference this record type"
+- Still show structural dependencies (relationships/views/actions/data) - these come from Step 6
 
 **Why this matters:**
 - User expectations: clarifies that data is preserved
@@ -283,47 +700,67 @@ Type 'DELETE [Name]' to confirm HIGH RISK operation.
 <a name="constant-delete-special-case"></a>
 ### Constant Delete Special Case
 
+**PRESENTATION TEMPLATE - Used by Universal Workflow 1 Step 7**
+
+This is a template, not a workflow. Universal Workflow 1 handles:
+- ✅ Calling `getObjectDependents` (Step 5)
+- ✅ Deduplicating and grouping results (Step 5)
+- ✅ Choosing this template (Step 7)
+
+Your job: Present dependency results using the format below.
+
+---
+
 **Important:** Constants are referenced by **NAME** in expressions (`cons!CONSTANT_NAME`), not by UUID. Deleting a constant breaks **ALL** expressions that reference it, with **no automatic updates**.
 
-**Use Universal Workflow 7 (Dependency Checking) first, then present confirmation using this template:**
+---
 
+**If dependencies found:**
 ```
 ⚠️ CRITICAL: You are about to DELETE constant "[Name]"
 
 Constant details:
-- Type: [TYPE] (GROUP, TEXT, INTEGER, etc.)
+- Type: [TYPE] (GROUP, TEXT, INTEGER, RECORD_TYPE, etc.)
 - Value: "[value]"
 - Description: "[description]"
 - UUID: [uuid]
 
-⚠️ Cannot automatically detect all dependencies.
+Design object dependencies (automated check via getObjectDependents):
+[ONLY show object types that were actually returned. If zero of a type, skip it entirely.]
 
-Manual verification REQUIRED before proceeding:
-1. Search ALL expression rules for "cons![Name]"
-2. Search ALL interfaces for "[Name]"
-3. Search ALL process models for security expressions using this constant
-4. Search ALL record actions for visibility/security expressions
-5. Check Web API security expressions
+❌ Expression Rules: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
+   [Show all if < 10, otherwise show first 10 + "...and N more"]
+   
+[If any interfaces found:]
+❌ Interfaces: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
 
-Use Appian Designer:
-- Open Constants page
-- Right-click "[Name]" → "Find Usages" (if available)
-- Review ALL usage locations
-- Document every location before proceeding
+[If any Web APIs found:]
+❌ Web APIs: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
+
+[If any process models found:]
+❌ Process Models: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
 
 What breaks if you proceed:
-❌ ALL expression rules using cons![Name] will fail at runtime
-❌ Security checks using this constant will break (may grant unauthorized access)
-❌ Process assignments using this constant may fail
-❌ Interface visibility conditions using this constant will error
+[Only list types that were actually found - don't mention types with zero dependencies]
+❌ [N] expression rules will fail validation (cons![Name] becomes "Unknown constant")
+[If interfaces found:] ❌ [N] interfaces will get "Unknown constant" errors
+[If Web APIs found:] ❌ [N] Web APIs will fail validation
+[If process models found:] ❌ [N] process models will have broken expressions
 
 What's preserved:
 ✅ The referenced object itself (e.g., the group "[value]" is not deleted)
 ✅ Other constants are not affected
 
+Impact: Deleting will break [TOTAL] objects. All cons![Name] references will become "Unknown constant" errors.
+
 Options:
-1. Cancel (recommended until manual verification complete)
-2. Proceed with delete (you verified no dependencies exist and are responsible for fixing any breaks)
+1. Cancel (recommended - update [TOTAL] dependencies first)
+2. Proceed (you fix [TOTAL] broken references)
+[If 10+ total dependencies:] 3. Details (show full dependency list)
 
 Alternative approach (RECOMMENDED):
 - Instead of deleting, update the constant's value to reference a different object
@@ -331,6 +768,36 @@ Alternative approach (RECOMMENDED):
 - Allows gradual migration if needed
 
 Type 'DELETE [Name]' to confirm HIGH RISK operation.
+```
+
+**IMPORTANT:** 
+- Do NOT add "Manual verification required" text
+- Do NOT suggest checking for types that getObjectDependents didn't return
+- If getObjectDependents found 1 expression rule and 0 of everything else, ONLY show expression rules section
+- Trust the tool - it checks ALL design objects automatically
+
+**If NO dependencies found:**
+```
+✅ Safe to delete constant "[Name]"
+
+Constant details:
+- Type: [TYPE]
+- Value: "[value]"
+- UUID: [uuid]
+
+Dependency check (automated):
+✅ No design objects reference this constant
+
+What happens:
+- Constant "[Name]" will be permanently deleted
+- No expressions will break (zero references found)
+- The referenced object itself ("[value]") is preserved
+
+Options:
+1. Delete constant
+2. Cancel
+
+Proceed with delete? (yes/no)
 ```
 
 **Why this matters:**
@@ -341,12 +808,128 @@ Type 'DELETE [Name]' to confirm HIGH RISK operation.
 
 ---
 
+### Expression Rule Delete Special Case
+
+**PRESENTATION TEMPLATE - Used by Universal Workflow 1 Step 7**
+
+This is a template, not a workflow. Universal Workflow 1 handles:
+- ✅ Calling `getObjectDependents` (Step 5)
+- ✅ Deduplicating and grouping results (Step 5)
+- ✅ Choosing this template (Step 7)
+
+Your job: Present dependency results using the format below.
+
+---
+
+**Important:** Expression rules are referenced by **NAME** in expressions (`rule!RULE_NAME`), not by UUID. Deleting an expression rule breaks **ALL** expressions that call it, with **no automatic updates**.
+
+---
+
+**If dependencies found:**
+```
+⚠️ CRITICAL: You are about to DELETE expression rule "[RuleName]"
+
+Rule details:
+- Inputs: [input1, input2, ...]
+- Description: "[description]"
+- UUID: [uuid]
+
+Design object dependencies (automated check via getObjectDependents):
+[ONLY show object types that were actually returned. If zero of a type, skip it entirely.]
+
+[If any calling expression rules found:]
+❌ Expression Rules: N unique (M references) - calling rules
+   - [Object name] (Line X: [breadcrumb details])
+   [Show all if < 10, otherwise show first 10 + "...and N more"]
+
+[If any interfaces found:]
+❌ Interfaces: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
+
+[If any Web APIs found:]
+❌ Web APIs: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
+
+[If any process models found:]
+❌ Process Models: N unique (M references)
+   - [Object name] (Line X: [breadcrumb details])
+
+What breaks if you proceed:
+[Only list types that were actually found - don't mention types with zero dependencies]
+[If expression rules found:] ❌ [N] expression rules will fail validation (broken rule! references)
+[If interfaces found:] ❌ [N] interfaces will get "Unknown rule" errors at runtime
+[If Web APIs found:] ❌ [N] Web APIs will fail validation
+[If process models found:] ❌ [N] process models will have broken expressions
+
+Impact: Deleting will break [TOTAL] objects. All rule![RuleName] references will become "Unknown rule" errors.
+
+Options:
+1. Cancel (recommended - update [TOTAL] dependencies first)
+2. Proceed (you fix [TOTAL] broken references)
+[If 10+ total dependencies:] 3. Details (show full dependency list)
+
+Alternative approach (RECOMMENDED):
+- Instead of deleting, deprecate and create replacement rule
+- Add "DEPRECATED" to rule name/description
+- Create new rule with better implementation
+- Migrate callers gradually
+- Delete old rule when migration complete
+
+Type 'DELETE [RuleName]' to confirm HIGH RISK operation.
+```
+
+**IMPORTANT:** 
+- Do NOT add "Manual verification required" text
+- Do NOT suggest checking for types that getObjectDependents didn't return
+- Trust the tool - it checks ALL design objects automatically
+
+**If NO dependencies found:**
+```
+✅ Safe to delete expression rule "[RuleName]"
+
+Rule details:
+- Inputs: [input1, input2, ...]
+- UUID: [uuid]
+
+Dependency check (automated):
+✅ No design objects call this rule
+
+What happens:
+- Expression rule "[RuleName]" will be permanently deleted
+- No expressions will break (zero references found)
+
+Options:
+1. Delete expression rule
+2. Cancel
+
+Proceed with delete? (yes/no)
+```
+
+**Why this matters:**
+- Expression rules are name-based references
+- No automatic update mechanism when rule is deleted
+- Cascading failures through calling rules
+- Runtime errors (no compile-time checks)
+
+---
+
 <a name="expression-rule-breaking-changes-special-case"></a>
 ### Expression Rule Breaking Changes Special Case
 
+**PRESENTATION TEMPLATE - Used by Universal Workflow 1 Step 7**
+
+This is a template, not a workflow. Universal Workflow 1 handles:
+- ✅ Calling `getObjectDependents` (Step 5)
+- ✅ Deduplicating and grouping results (Step 5)
+- ✅ Choosing this template (Step 7)
+
+Your job: Present dependency results using the format below.
+
+---
+
 **Important:** Expression rule breaking changes (input removal, input type change, return type change) break **ALL** calling rules, interfaces, and process models with **no automatic updates**.
 
-**Use Universal Workflow 7 (Dependency Checking) first, then present confirmation using this template:**
+---
 
 ```
 ⚠️ BREAKING CHANGE: Removing input "[inputName]" from [RuleName]
@@ -363,25 +946,23 @@ Impact:
 ❌ Interfaces using this rule will error
 ❌ Process models calling this rule will fail
 
-⚠️ Cannot automatically detect all dependencies.
-
-Manual verification REQUIRED before proceeding:
-1. Search ALL expression rules for "rule![RuleName]"
-2. Search ALL interfaces for "[RuleName]"
-3. Search ALL process models for script task expressions calling this rule
-4. Search ALL record actions/views for expressions using this rule
-5. Check Web API expressions
-
-Use Appian Designer:
-- Open Expression Rules page
-- Right-click "[RuleName]" → "Find Usages" (if available)
-- Review ALL calling locations
-- Document every caller before proceeding
+Design object dependencies (automated check):
+❌ Expression Rules: N unique (M references) - ALL will break
+   [Show top 10 calling rules with breadcrumbs]
+   
+❌ Interfaces: N unique (M references) - ALL will error
+   [Show top 10 with breadcrumbs]
+   
+❌ Web APIs: N unique (M references) - ALL will fail
+   [Show all or top 10 with breadcrumbs]
+   
+❌ Process Models: N unique (M references) - ALL will break
+   [Show all or top 10 with breadcrumbs]
 
 What breaks if you proceed:
-❌ All expression rules calling rule![RuleName]([inputName]: ...) will fail
-❌ All interfaces calling this rule with [inputName] will error
-❌ All process model script tasks using this rule will fail
+❌ [TOTAL] design objects will break when calling rule![RuleName]([inputName]: ...)
+❌ All callers must be manually updated to remove [inputName] parameter
+❌ No automatic migration available
 
 Alternative approaches (choose one):
 1. Make [inputName] optional with default value (NON-BREAKING):
@@ -1208,703 +1789,90 @@ User can respond:
 
 ---
 
-<a name="universal-workflow-6-rename-update-confirmation"></a>
-## Universal Workflow 6: Rename/Update Confirmation
 
-### When to Use
+<a name="note-on-renames"></a>
+## Note on Renames
 
-Apply this workflow before renaming or significantly updating any Appian object:
-- Renaming groups, record types, fields, relationships
-- Renaming expression rules, interfaces, constants
-- Changing key identifiers that may be hard-coded in SAIL expressions
-- Updating objects that may have name-based dependencies
+**Renaming Appian objects is safe and requires no dependency checking.**
 
-### UUID vs Name-Based Objects
+All Appian objects use internal identifiers (UUIDs or integer IDs), not names. When you rename an object, only the display name changes - internal references continue working automatically.
 
-**Critical Distinction:** Most Appian objects are UUID-based internally, making renames SAFE. Only a few objects have name-based dependencies.
+### How Renames Work
 
-#### UUID-Based Objects (Renames are SAFE)
+| Object Type | Internal Reference | Rename Impact |
+|---|---|---|
+| Expression Rules | UUID | ✅ `rule!NAME()` syntax auto-updates to new name |
+| Groups | Integer ID | ✅ All references continue working (ID unchanged) |
+| Record Types | UUID | ✅ `recordType!` references continue working |
+| Interfaces | UUID | ✅ All references continue working |
+| Process Models | UUID | ✅ All references continue working |
+| All other objects | UUID | ✅ All references continue working |
+| **Constants** | **N/A** | **❌ Cannot be renamed (blocked by Appian UI)** |
 
-These objects use UUIDs internally. Renaming updates all system references automatically:
+### Rename Workflow
 
-| Object Type | UUID Used For | Rename Impact | Manual Updates Needed |
-|---|---|---|---|
-| **Record Types** | Relationships, views, actions | ✅ SAFE - all references auto-update | None (unless hard-coded in expressions) |
-| **Fields** | Relationships, title expressions | ✅ SAFE - UUID never changes | None (unless hard-coded in expressions) |
-| **Folders** | Constants, document storage | ✅ SAFE - constants store UUID | None |
-| **Documents** | Process models, interfaces | ✅ SAFE - references use UUID | None |
-| **Process Models** | Constants, start forms | ✅ SAFE - constants store UUID | None |
-| **Interfaces** | Sites, process models | ✅ SAFE - references use UUID | None |
-| **Expression Rules** | Calls from other rules | ✅ SAFE - UUID-based calls | None (unless hard-coded in expressions) |
+Simple process, no dependency checking needed:
 
-**Why these are safe:**
-- Internal references use UUID, not name
-- UUID never changes when you rename
-- Appian automatically maintains referential integrity
+1. **Verify object exists**
+   - Call `get` or `list` operation to confirm object exists
+   - Resolve name to UUID if needed
 
-#### Name-Based Objects (Renames Require Care)
+2. **Check if rename is allowed**
+   - Constants: Cannot be renamed (Appian platform limitation)
+   - All other objects: Can be renamed safely
 
-Two object types have name-based dependencies:
+3. **Present simple confirmation**
+   ```
+   Rename "[ObjectType]" from "[OldName]" to "[NewName]"?
+   
+   ✅ Safe operation - all references will continue working
+   (Internal identifiers remain unchanged)
+   
+   Continue? (yes/no)
+   ```
 
-| Object Type | Name Used For | Rename Impact | Risk Level | Manual Updates Needed |
-|---|---|---|---|---|
-| **Constants** | All `cons!NAME` references | ❌ HIGH - NOTHING auto-updates | ❌ HIGH | ALL expressions, interfaces, process models |
-| **Groups** | SAIL expressions, API operations | ⚠️ MIXED - constants auto-update, expressions don't | ⚠️ MEDIUM | Hard-coded group names in SAIL code |
+4. **Execute rename**
+   - Call appropriate `update` tool with new name
+   - UUID/ID remains unchanged
 
-##### Constants (HIGH RISK)
+5. **Inform user**
+   ```
+   ✅ Renamed "[ObjectType]" from "[OldName]" to "[NewName]"
+   
+   All references automatically updated.
+   ```
 
-**CRITICAL:** Constants ARE UUID-based internally, BUT expressions reference them by NAME (`cons!NAME`), not UUID.
+### Special Case: Constants Cannot Be Renamed
 
-**What BREAKS when renaming a constant:**
-- ❌ ALL expression rules using `cons!OLD_NAME`
-- ❌ ALL interfaces using `cons!OLD_NAME`
-- ❌ ALL process models using `cons!OLD_NAME`
+If user requests constant rename:
 
-**What's PRESERVED:**
-- ✅ Constant UUID (unchanged)
-- ✅ Constant value (unchanged)
-- ✅ Constant type (unchanged)
-
-**Why HIGH RISK:**
-Unlike groups (where GROUP constants auto-update), constant renames provide NO automatic updates. Every single reference must be manually updated.
-
-**Detection:** Cannot programmatically detect all uses (would require parsing SAIL code in all objects).
-
-**Recommendation:** Instead of renaming:
-1. Create new constant with new name, same value
-2. Gradually update expressions to use new constant
-3. Delete old constant when all references updated
-
-##### Groups (MEDIUM RISK)
-
-**What auto-updates when renaming a group:**
-- ✅ GROUP constants (value changes to new name)
-- ✅ Group memberships (UUID-based, preserved)
-- ✅ Parent-child hierarchy (UUID-based, preserved)
-
-**What requires manual updates:**
-- ❌ Hard-coded group names in `a!isUserMemberOfGroup()` calls
-- ❌ Hard-coded group names in security expressions
-- ❌ Hard-coded group names in process model conditions
-
-### Workflow Steps
-
-1. **Identify object type**
-   - UUID-based → LOW RISK, continue to step 4 with LOW RISK confirmation
-   - Constant → HIGH RISK, continue to step 2
-   - Group → MEDIUM RISK, continue to step 3
-
-2. **For Constants: Present CRITICAL risk warning**
-   - Skip detection (cannot automatically detect all uses)
-   - Proceed directly to step 4 with HIGH RISK confirmation
-
-3. **For Groups: Search for hard-coded references**
-   - Cannot detect automatically
-   - Warn: "Search interfaces, expression rules, and process models for hard-coded group name strings"
-
-4. **Present appropriate risk level:**
-
-**For Constants (HIGH RISK):**
 ```
-⚠️ CRITICAL: You are about to RENAME constant "[OLD_NAME]" to "[NEW_NAME]"
+❌ Cannot rename constants
 
-This will BREAK all expressions using cons!OLD_NAME
+Appian does not support renaming constants through the UI or API.
 
-What breaks:
-❌ ALL expression rules using cons!OLD_NAME
-❌ ALL interfaces using cons!OLD_NAME
-❌ ALL process models using cons!OLD_NAME
+Alternative approach:
+1. Create new constant with new name and same value
+2. Update expressions to use new constant (search for cons!OLD_NAME)
+3. Delete old constant when all references are updated
 
-What's preserved:
-✅ Constant UUID ([uuid])
-✅ Constant value ("[value]")
-✅ Constant type ([type])
-
-Manual updates required:
-1. Search ALL expression rules for "cons!OLD_NAME"
-2. Search ALL interfaces for "cons!OLD_NAME"
-3. Search ALL process models for "cons!OLD_NAME"
-4. Update EACH reference to "cons!NEW_NAME"
-
-⚠️ No automatic updates (unlike group rename where GROUP constants auto-update)
-
-Alternative approach (RECOMMENDED):
-1. Create new constant "NEW_NAME" with same value
-2. Gradually migrate expressions to cons!NEW_NAME
-3. Delete old constant when all references updated
-
-This avoids breaking everything at once.
-
-Type 'RENAME [OLD_NAME]' to confirm HIGH RISK operation.
+This gradual migration avoids breaking all expressions at once.
 ```
 
-**For UUID-based objects (LOW risk):**
-```
-Rename "[ObjectType]" from "[OldName]" to "[NewName]"?
+### Why This Is Safe
 
-✅ All system references will automatically update (UUID-based).
-❌ Any hard-coded "[OldName]" strings in SAIL expressions will need manual updates.
+**Technical explanation:**
 
-Continue? (yes/no)
-```
+- **Expression rules:** Even though syntax is `rule!NAME()`, Appian stores the UUID internally. When you rename, Appian updates the syntax everywhere.
+- **Groups:** Functions like `a!isUserMemberOfGroup()` accept Group objects (which have integer IDs). Constants store the Group object, not the name string.
+- **Record types, interfaces, etc.:** All use UUID-based references internally.
 
-**For Groups (MEDIUM risk):**
-```
-Rename group "[OldName]" to "[NewName]"?
-
-What Appian will automatically update:
-✅ GROUP constants (value will change to "[NewName]")
-✅ Group memberships (all members preserved)
-✅ Parent-child relationships (hierarchy preserved)
-
-What requires manual updates:
-❌ Hard-coded "[OldName]" in SAIL security expressions
-❌ Hard-coded "[OldName]" in expression rules
-❌ Hard-coded "[OldName]" in process model conditions
-
-Recommendation: After rename, search for "[OldName]" and update hard-coded references.
-
-Continue? (yes/no)
-```
-
-5. **Wait for user confirmation**
-   - HIGH RISK (constants): Wait for typed confirmation matching exact old name
-   - MEDIUM/LOW RISK: Wait for yes/no response
-   - If user declines, abort operation
-
-6. **Execute rename** (only after confirmation)
-   - Call `update` operation with new name
-   - UUID remains unchanged
-
-7. **Inform user of next steps:**
-
-**For UUID-based objects:**
-```
-✅ Renamed "[ObjectType]" from "[OldName]" to "[NewName]"
-
-All system references automatically updated.
-
-Optional: Search for hard-coded "[OldName]" strings in SAIL expressions.
-```
-
-**For Groups:**
-```
-✅ Group renamed from "[OldName]" to "[NewName]"
-
-Automatic updates:
-- GROUP constants updated
-- Memberships preserved
-- Hierarchy preserved
-
-Manual action required:
-Search for hard-coded "[OldName]" in:
-1. Interfaces (security expressions)
-2. Expression rules (a!isUserMemberOfGroup calls)
-3. Process models (group name conditions)
-```
-
-### Common Rename Scenarios
-
-#### Scenario 1: Renaming a Record Type
-
-**User:** "Rename the Case record type to Support Case"
-
-**AI Workflow:**
-1. Identify: UUID-based object → LOW RISK
-2. Present: "Rename record type 'Case' to 'Support Case'? All relationships, views, and actions will automatically update. Continue? (yes/no)"
-3. Wait for user confirmation (yes/no)
-4. Execute: `updateRecordType(uuid, name: "Support Case")`
-5. Inform: "✅ Renamed to 'Support Case'. All system references automatically updated."
-
-No follow-up needed unless hard-coded references exist.
-
-#### Scenario 2: Renaming a Group
-
-**User:** "Rename CM Administrators to CM Admin Group"
-
-**AI Workflow:**
-1. Identify: Group → MEDIUM RISK
-2. Search: Cannot auto-detect hard-coded references
-3. Present: "Rename group 'CM Administrators' to 'CM Admin Group'? GROUP constants will auto-update, but hard-coded references in SAIL need manual updates. Continue? (yes/no)"
-4. Wait for user confirmation (yes/no)
-5. Execute: `updateGroup(groupName: "CM Administrators", name: "CM Admin Group")`
-6. Inform: "✅ Renamed. GROUP constants updated. Search for 'CM Administrators' in SAIL expressions and update manually."
-
-Follow-up: User searches and updates hard-coded references.
-
-#### Scenario 3: Renaming a Field
-
-**User:** "Rename the status field to caseStatus"
-
-**AI Workflow:**
-1. Identify: UUID-based object → LOW RISK
-2. Check: Is field used in relationships, title expression, or views? (structural check)
-3. Present: "Rename field 'status' to 'caseStatus'? Used in 1 relationship and title expression. All references will auto-update. Continue? (yes/no)"
-4. Wait for user confirmation (yes/no)
-5. Execute: `updateRecordTypeField(uuid, fieldName: "caseStatus")`
-6. Inform: "✅ Renamed. Relationship and title expression automatically updated."
-
-No follow-up needed.
-
-### Pitfalls to Avoid
-
-- **Assuming renames are risky** — Most objects are UUID-based and safe to rename
-- **Not distinguishing groups from other objects** — Groups are the exception, not the rule
-- **Over-warning** — Don't warn about "breaking references" for UUID-based objects
-- **Under-warning for groups** — Do warn about hard-coded SAIL expressions
-
-### Cross-References
-
-For object-specific rename considerations:
-- Groups: `references/security-patterns.md` (Group Rename section)
-- Record Types: `references/record-types.md` (Name Collision Detection section)
-- Expression Rules: `references/expression-rules.md` (Naming Conventions section)
+**The only name-based reference in Appian is `cons!NAME`, and constants cannot be renamed.**
 
 ---
+
 
 <a name="universal-workflow-7-dependency-checking"></a>
-## Universal Workflow 7: Dependency Checking
-
-**⚠️ CRITICAL:** This workflow is REQUIRED for all DELETE and RENAME operations. 
-- Universal Workflow 1 (Delete Confirmation) MUST use this workflow's templates
-- Universal Workflow 6 (Rename Confirmation) MUST use this workflow's templates
-
-### When to Use
-
-Before any destructive or breaking operation:
-- **Delete operations** — What depends on this object?
-- **Rename operations** (name-based objects) — What references this name?
-- **Input removal** (expression rules, interfaces) — What calls this with that parameter?
-- **Breaking changes** — What will stop working?
-
-**Key Principle:** Know what breaks BEFORE the user confirms the operation.
-
----
-
-### Why Dependency Checking Matters
-
-**Without dependency checking:**
-- User deletes Status record type → all Issue records lose their status field reference
-- User renames constant PMS_ADMIN_GROUP → all expressions using `cons!PMS_ADMIN_GROUP` break
-- User removes input from expression rule → all calling rules fail
-
-**With dependency checking:**
-- Present impact BEFORE user confirms
-- Offer alternatives (cascade delete, refactor, cancel)
-- Document what needs manual updates
-
----
-
-### Current Tool Limitations
-
-⚠️ **Important:** The current MCP tools support only **structural dependency checks**. Expression-based dependency detection (e.g., "which expressions reference this constant?") is **not available**.
-
-**What we CAN check (structural):**
-- Record type relationships (MANY_TO_ONE, ONE_TO_MANY)
-- Record type views and actions
-- Record type user filters
-- Record data existence
-- Group hierarchy (parent/child relationships)
-- Group members
-- Application contained objects
-
-**What we CANNOT check (requires tools not available):**
-- Which expressions reference a constant
-- Which interfaces hard-code a group name
-- Which process models reference an expression rule
-- Which expressions call another expression rule
-- Hard-coded string references in SAIL code
-
-**Approach:** Use structural checks + manual verification fallback.
-
----
-
-### Workflow Steps
-
-#### Step 1: Identify Operation Type
-
-Determine what kind of operation is being attempted:
-
-| Operation | Dependency Type | Check Method |
-|---|---|---|
-| Delete record type | Relationships, views, actions, data | Structural (available) |
-| Delete field | Related views/actions using field | Structural (available) |
-| Delete constant | Expression references | Manual fallback (not available) |
-| Delete expression rule | Calling rules/interfaces | Manual fallback (not available) |
-| Delete group | Security expressions, hierarchy | Structural + manual |
-| Rename constant | `cons!NAME` references | Manual fallback (not available) |
-| Rename group | Hard-coded name strings | Structural + manual |
-| Remove rule input | Calling rules with that parameter | Manual fallback (not available) |
-
-#### Step 2: Perform Available Structural Checks
-
-Use available MCP tools to check structural dependencies:
-
-**For Record Types:**
-```
-1. Check relationships: Does this record type have relationships to/from other types?
-   Tool: getRecordType(uuid) → check relationships array
-   
-2. Check views: Does this record type have custom views?
-   Tool: listRecordTypeViews(recordTypeUuid)
-   
-3. Check actions: Does this record type have actions?
-   Tool: listRecordTypeActions(recordTypeUuid)
-   
-4. Check data: Does this record type have data?
-   Tool: listRecordData(recordTypeUuid, limit=1)
-```
-
-**For Groups:**
-```
-1. Check hierarchy: Does this group have child groups?
-   Tool: listGroups() → filter by parentGroupUuid
-   
-2. Check members: Does this group have members?
-   Tool: listGroupMembers(groupUuid)
-   
-3. Check constants: Does a GROUP constant reference this group?
-   Tool: listConstants() → filter by type=GROUP, check values
-```
-
-**For Applications:**
-```
-1. Check contained objects: What objects are in this application?
-   Tool: listApplicationObjects(applicationUuid)
-```
-
-#### Step 3: Document Manual Verification Requirements
-
-For expression-based dependencies (not detectable via tools), present manual verification guidance:
-
-**Template for manual fallback:**
-```
-⚠️ Cannot automatically detect all dependencies.
-
-Manual verification required:
-1. Search expression rules for "[OBJECT_NAME]" or "cons!CONSTANT_NAME"
-2. Search interfaces for hard-coded references
-3. Search process models for script task expressions
-4. Check Web APIs for usage in request/response expressions
-
-Use Appian Designer's "Find Usages" feature:
-- Open object in Designer
-- Right-click → "Find Usages" (if available for object type)
-- Review usage list before proceeding
-```
-
-#### Step 4: Present Dependencies to User
-
-Show structural dependencies + manual verification requirements BEFORE confirmation:
-
-**Template for presenting dependencies:**
-```
-⚠️ [OPERATION] will impact:
-
-Structural dependencies (confirmed):
-❌ 3 relationships from other record types
-❌ 2 custom views
-❌ 4 record actions
-❌ 15,432 existing records
-
-Manual verification required (cannot detect automatically):
-⚠️ Expressions using cons!STATUS_OPEN
-⚠️ Interfaces hard-coding "Open" status
-⚠️ Process models checking status field
-
-What will happen:
-- [List specific impacts]
-
-Options:
-1. Cancel (recommended until manual verification complete)
-2. Proceed with [OPERATION] (you are responsible for manual updates)
-3. [Alternative approach if available]
-
-What would you like to do? (1/2/3)
-```
-
-#### Step 5: Offer Resolution Strategies
-
-Based on operation type and dependencies found:
-
-**Safe cascade operations (offer if applicable):**
-- Delete record type → offer cascade delete related data (if updateTable=true supported)
-- Delete parent group → offer cascade delete child groups (if supported)
-
-**Refactoring alternatives (recommend):**
-- Instead of deleting constant → deprecate and create replacement
-- Instead of renaming constant → create new, migrate references, delete old
-- Instead of removing input → add new input, deprecate old (non-breaking change)
-
-**Manual update guidance:**
-- List specific files/objects requiring manual updates
-- Suggest search patterns for finding references
-- Document post-operation verification steps
-
----
-
-### Dependency Check Examples
-
-#### Example 1: Record Type Delete with Structural Dependencies
-
-**Operation:** Delete "PMS Status" record type
-
-**Structural checks performed:**
-```
-✓ getRecordType(uuid) → relationships: 2 MANY_TO_ONE from other types
-✓ listRecordTypeViews(uuid) → views: 1 custom view
-✓ listRecordTypeActions(uuid) → actions: 0
-✓ listRecordData(uuid, limit=1) → data: 4 records exist
-```
-
-**Presentation to user:**
-```
-⚠️ Cannot delete PMS Status: dependencies found
-
-Structural dependencies (confirmed):
-❌ 2 record types reference Status:
-   - PMS Project (relationship: status)
-   - PMS Task (relationship: status)
-❌ 1 custom view: Status Grid
-❌ 4 status records exist (Created, Assigned, Approved, Closed)
-
-Impact:
-- Deleting Status will break Project and Task relationships
-- 15 projects and 43 tasks currently reference these statuses
-- Status Grid view will fail to load
-
-Options:
-1. Cancel (recommended - dependencies must be removed first)
-2. Remove relationships from Project and Task, then retry
-3. Keep Status record type
-
-What would you like to do? (1/2/3)
-```
-
-#### Example 2: Constant Delete with Manual Fallback
-
-**Operation:** Delete constant "PMS_ADMIN_GROUP"
-
-**⚠️ IMPORTANT:** For constant deletions, use the [Constant Delete Special Case](#constant-delete-special-case) template which provides the complete structure. This example shows the workflow; the Special Case provides the template.
-
-**Structural checks performed:**
-```
-✓ getConstant(uuid) → type: GROUP, value: "PMS Administrators"
-✗ Cannot detect expressions using cons!PMS_ADMIN_GROUP (tool not available)
-```
-
-**Presentation to user:**
-```
-⚠️ CRITICAL: You are about to DELETE constant "PMS_ADMIN_GROUP"
-
-Type: GROUP
-Value: "PMS Administrators"
-UUID: [uuid]
-
-⚠️ Cannot automatically detect all dependencies.
-
-Manual verification REQUIRED before proceeding:
-1. Search ALL expression rules for "cons!PMS_ADMIN_GROUP"
-2. Search ALL interfaces for "PMS_ADMIN_GROUP" 
-3. Search ALL process models for security expressions
-4. Search ALL record actions for security/visibility expressions
-5. Check Web API security expressions
-
-Use Appian Designer:
-- Open Constants page
-- Right-click "PMS_ADMIN_GROUP" → "Find Usages"
-- Review ALL usage locations
-
-What breaks if you proceed:
-❌ ALL expressions using cons!PMS_ADMIN_GROUP will fail
-❌ Security checks will break (may grant unauthorized access)
-❌ Process assignments may fail
-
-Options:
-1. Cancel (recommended until manual verification complete)
-2. Proceed (you are responsible for updating ALL references)
-
-Type 'DELETE PMS_ADMIN_GROUP' to confirm HIGH RISK operation.
-```
-
-#### Example 3: Group Hierarchy Check
-
-**Operation:** Delete group "PMS Developers"
-
-**Structural checks performed:**
-```
-✓ listGroups() → child groups: 2 found
-   - PMS Senior Developers
-   - PMS Junior Developers
-✓ listGroupMembers(uuid) → members: 8 users
-✓ listConstants() → GROUP constants: 1 found (PMS_DEVELOPERS_GROUP)
-```
-
-**Presentation to user:**
-```
-⚠️ Cannot delete PMS Developers: dependencies found
-
-Structural dependencies (confirmed):
-❌ 2 child groups (will be orphaned):
-   - PMS Senior Developers (3 members)
-   - PMS Junior Developers (5 members)
-❌ 8 direct members
-❌ 1 GROUP constant: PMS_DEVELOPERS_GROUP
-
-Manual verification required:
-⚠️ Security expressions using a!isUserMemberOfGroup()
-⚠️ Hard-coded "PMS Developers" in interfaces/rules
-⚠️ Process model security expressions
-
-Impact:
-- Child groups will lose parent (hierarchy broken)
-- GROUP constant value will become invalid
-- Security expressions using the constant will fail
-
-Options:
-1. Cancel (recommended)
-2. Remove child groups first, then retry
-3. Reassign child groups to different parent
-
-What would you like to do? (1/2/3)
-```
-
----
-
-### Cascade Delete Considerations
-
-Some operations support cascade deletes. Present cascade options ONLY when safe and supported by tools.
-
-**When cascade is SAFE:**
-- Delete record type with `updateTable=true` → drops database table and data
-- Delete parent folder → deletes contained documents (if supported)
-
-**When cascade is UNSAFE:**
-- Delete record type → DO NOT cascade delete related record types (breaks other relationships)
-- Delete group → DO NOT cascade delete child groups (breaks member hierarchy)
-- Delete constant → NO CASCADE (expressions must be manually updated)
-
-**Template for offering cascade:**
-```
-Cascade delete option available:
-
-⚠️ Delete record type AND drop database table?
-
-This will:
-✅ Remove record type metadata
-✅ Drop PMS_STATUS table (4 records deleted)
-❌ Break 2 relationships (Project.status, Task.status)
-
-Cascade delete is IRREVERSIBLE.
-
-Options:
-1. Delete record type only (preserve table and data)
-2. Delete record type AND table (IRREVERSIBLE)
-3. Cancel
-
-What would you like to do? (1/2/3)
-```
-
----
-
-### Manual Verification Guidance Templates
-
-#### For Constants (Expression References)
-
-```
-⚠️ Manual verification required for constant: [CONSTANT_NAME]
-
-Search for ALL references in Appian Designer:
-1. Expression Rules:
-   - Open "Expression Rules" page
-   - Use search: "cons![CONSTANT_NAME]"
-   - Review all matching rules
-   
-2. Interfaces:
-   - Open "Interfaces" page
-   - Use search: "[CONSTANT_NAME]"
-   - Check expression editor for each match
-   
-3. Process Models:
-   - Open "Process Models" page
-   - Check Script Task expressions
-   - Check XOR Gateway conditions
-   - Check start form expressions
-   
-4. Record Types:
-   - Check record action visibility expressions
-   - Check record view expressions
-   - Check user filter expressions
-
-Expected locations:
-- Security expressions: a!isUserMemberOfGroup(user, cons![CONSTANT_NAME])
-- Status checks: rv!record.status = cons![CONSTANT_NAME]
-- Conditional logic: if(pv!status = cons![CONSTANT_NAME], ...)
-
-Document all findings before proceeding.
-```
-
-#### For Expression Rules (Calling Dependencies)
-
-```
-⚠️ Manual verification required for expression rule: [RULE_NAME]
-
-Find all calling locations:
-1. Right-click rule in Designer → "Find Usages"
-2. Review list of:
-   - Other expression rules calling this rule
-   - Interfaces using this rule
-   - Process models calling this rule
-   
-If "Find Usages" not available:
-1. Search expression rules for "rule![RULE_NAME]"
-2. Search interfaces for "[RULE_NAME]"
-3. Check process model Script Tasks
-
-Document impact:
-- How many rules call this?
-- Which interfaces use this?
-- Which process models depend on this?
-
-If removing input parameter:
-- All calling locations must be updated
-- Calls with removed parameter will fail
-```
-
----
-
-### When to Skip Dependency Checking
-
-**Skip structural checks when:**
-- User explicitly requests quick delete (acknowledged risks)
-- Object was just created in this session (no dependencies possible)
-- Object type has no dependency mechanisms (e.g., folders with no contents)
-
-**Never skip manual verification guidance for:**
-- Constants (expression references)
-- Expression rules (calling dependencies)
-- Name-based references (groups hard-coded in expressions)
-
----
-
-### Cross-References
-
-**Related Universal Workflows:**
-- Universal Workflow 1: Delete Confirmation (uses dependency checking results)
-- Universal Workflow 6: Rename Confirmation (uses dependency checking for name-based objects)
-
-**Object-Specific Dependency Checks:**
-- Record Types: `references/record-types.md` (Deletion Confirmation section)
-- Expression Rules: `references/expression-rules.md` (Dependency Management section)
-- Applications: `references/applications.md` (Application Deletion section)
-- Groups: `references/security-patterns.md` (Group Management section)
-
-**Tool Limitations:**
-- Phase 1.5 documents tool enhancement proposals for expression-based dependency detection
-- See `/my-docs/interactive-guidance/tool-change-proposal-dependency-detection.md` (not in skill)
-
----
-
 ## When You Need More
 
 This file covers **universal patterns** that apply across all object types. For **object-specific confirmation patterns**, load the relevant domain reference:

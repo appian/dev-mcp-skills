@@ -329,6 +329,7 @@ This 15-step sequence ensures a complete, working data model with full bidirecti
 ### Process model requirements
 - `parentFolderUuid` must be a **process model folder** (from `listProcessModelFolders`), not a regular folder
 - `errorAlertGroupName` is required on create — use the app's administrators group name
+- Start forms use `inputMap` where keys = PV names (without `pv!`), values = interface input names (without `ri!`)
 
 ### Record type relationships
 - Must declare both sides: MANY_TO_ONE on the FK table AND ONE_TO_MANY on the referenced table

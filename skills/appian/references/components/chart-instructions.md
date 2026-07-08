@@ -5,15 +5,42 @@ SAIL provides chart components for visualizing data including area, bar, column,
 
 ## ⚠️ CRITICAL: Two Different Data Approaches
 
-### Approach 1: Static Mockup Data (categories + series)
-**Use for:** Column, Line, Bar, Area, and Pie charts with hardcoded sample data
-**Structure:**
+### Approach 1: Static Mockup Data
+
+**For Column, Line, Bar, Area Charts:** Use `categories` + `series`
 ```sail
 a!columnChartField(
   categories: {"Q1", "Q2", "Q3", "Q4"},
   series: {
     a!chartSeries(label: "Sales", data: {100, 120, 115, 140}, color: "#3B82F6")
   }
+)
+```
+
+**For Pie Charts:** Use `series` ONLY (NO categories)
+
+**Option 1: Hardcoded series** (when you know slices in advance)
+```sail
+a!pieChartField(
+  series: {
+    a!chartSeries(label: "Company A", data: 32, color: "#3B82F6"),
+    a!chartSeries(label: "Company B", data: 28, color: "#10B981"),
+    a!chartSeries(label: "Company C", data: 18, color: "#F59E0B")
+  }
+)
+```
+
+**Option 2: Dynamic series with a!forEach** (when data is in a!map arrays)
+```sail
+a!pieChartField(
+  series: a!forEach(
+    items: local!dataWithLabelAndValue,
+    expression: a!chartSeries(
+      label: fv!item.labelField,
+      data: fv!item.valueField
+    )
+  ),
+  colorScheme: "OCEAN"  /* colorScheme applies colors automatically */
 )
 ```
 
@@ -31,8 +58,12 @@ a!columnChartField(
 ```
 
 ### Important Notes:
-- ✅ For static mockups, ALWAYS use `categories` + `series`
+- ✅ For column/line/bar/area mockups: Use `categories` + `series`
+- ✅ For pie chart mockups: Use `series` ONLY (each series = one slice with single data value)
+  - **Hardcode series** when slices are known: `series: {a!chartSeries(...), a!chartSeries(...)}`
+  - **Use a!forEach** when data is in a!map arrays: `series: a!forEach(items: local!data, expression: a!chartSeries(...))`
 - ❌ Do NOT use `data` + `config` for static mockups (will cause errors)
+- ❌ Do NOT use `categories` parameter with pie charts in static mockups
 - ⚠️ **Scatter charts ONLY work with Approach 2 (record data)** - they cannot be used with static mockup data
 
 ## Available Chart Types
@@ -106,13 +137,20 @@ Available height values vary by chart type:
 - **Scatter, Pie Charts**: `SHORT`, `MEDIUM`, `TALL`
 - **Bar Charts**: `MICRO`, `SHORT`, `MEDIUM`, `TALL`, `AUTO`
 
-### Data Parameters for Mock Data (Column, Line, Bar, Area, Pie)
+### Data Parameters for Mock Data
+
+#### Column, Line, Bar, Area Charts
 - **categories**: Array of text labels for the axis (e.g., `{"Q1", "Q2", "Q3"}`)
-  - Required when using static data
+  - **Required** when using static data
   - One label for each data point
 - **series**: Array of `a!chartSeries()` containing the actual data
   - Each series needs: `label`, `data` (array of numbers), `color` (hex or semantic)
-  - For pie charts, each series is one slice with a single data value
+
+#### Pie Charts
+- **series**: Array of `a!chartSeries()` containing the actual data
+  - Each series is **one slice** with a **single data value**
+  - Each series needs: `label`, `data` (single number, not array), `color` (hex or semantic)
+- **categories**: ❌ **NOT USED** - pie charts do not have categories parameter with static data
 
 ### Data Parameters for Live Record Data
 - **data**: Record type reference (e.g., `recordType!Product`) or `a!recordData()`
@@ -390,7 +428,7 @@ a!lineChartField(
 )
 ```
 
-### ✅ CORRECT: Pie Chart with Static Data
+### ✅ CORRECT: Pie Chart with Static Data (Hardcoded Series)
 ```sail
 a!pieChartField(
   labelPosition: "COLLAPSED",
@@ -406,6 +444,39 @@ a!pieChartField(
   height: "MEDIUM"
 )
 ```
+
+### ✅ CORRECT: Pie Chart with Dynamic Data (Using a!forEach)
+```sail
+/* When you have data in a!map format with label and value fields */
+local!casesByPriority: {
+  a!map(priority: "Low", count: 142),
+  a!map(priority: "Medium", count: 119),
+  a!map(priority: "High", count: 24),
+  a!map(priority: "Critical", count: 8)
+}
+
+a!pieChartField(
+  label: "Cases by Priority",
+  series: a!forEach(
+    items: local!casesByPriority,
+    expression: a!chartSeries(
+      label: fv!item.priority,
+      data: fv!item.count
+    )
+  ),
+  colorScheme: "OCEAN",
+  showDataLabels: true,
+  showAsPercentage: true,
+  labelPosition: "ABOVE",
+  height: "MEDIUM"
+)
+```
+
+**Note:** When using `a!forEach` to generate series:
+- Use `fv!item` to reference each map in the loop
+- Each `a!chartSeries()` still represents ONE slice
+- `colorScheme` parameter applies colors automatically (no need to specify `color` in each series)
+- This pattern is cleaner when data structure already exists as a!map arrays
 
 ### ❌ WRONG: Do NOT use this approach for static mockups
 ```sail
@@ -651,13 +722,18 @@ config: a!columnChartConfig(
 Before finalizing any chart:
 
 ### For Static Mockup Charts:
-- [ ] ✅ Using `categories` + `series` approach (NOT `data` + `config`)
-- [ ] ✅ Each `a!chartSeries()` has `label`, `data` array, and `color`
-- [ ] ✅ Number of data points matches number of categories
+- [ ] ✅ Using correct approach for chart type:
+  - Column/Line/Bar/Area: `categories` + `series` (NOT `data` + `config`)
+  - Pie: `series` ONLY, no `categories` parameter
+- [ ] ✅ Each `a!chartSeries()` has `label`, `data`, and `color`
+  - Column/Line/Bar/Area: `data` is an array of numbers
+  - Pie: `data` is a single number (one per slice)
+- [ ] ✅ For column/line/bar/area: Number of data points matches number of categories
+- [ ] ❌ For pie charts: NOT using `categories` parameter
 - [ ] ❌ NOT using scatter chart (requires record data)
 - [ ] Chart type appropriate for data and message
 - [ ] Colors use valid hex codes (6 characters) or semantic colors
-- [ ] Axis titles provided where applicable
+- [ ] Axis titles provided where applicable (not for pie charts)
 - [ ] Height set appropriately for content
 - [ ] Legend parameter used correctly (not available for pie charts)
 - [ ] Stacking parameter is valid: "NORMAL", "PERCENT_TO_TOTAL", or "NONE"
@@ -672,13 +748,42 @@ Before finalizing any chart:
 
 ## Common Mistakes to Avoid
 
-### 🚨 MOST CRITICAL ERROR - Using Wrong Data Approach
+### 🚨 MOST CRITICAL ERROR #1 - Using Wrong Data Approach
 
-**The #1 most common mistake is using `data` + `config` for static mockups.**
+**Using `data` + `config` for static mockups.**
 
 This causes the error: `"Cannot index property 'uuid' of type Text into type List of Null"`
 
-**Fix:** Always use `categories` + `series` for static mockup charts!
+**Fix:** Always use `categories` + `series` for column/line/bar/area mockup charts, and `series` ONLY for pie chart mockups!
+
+---
+
+### 🚨 MOST CRITICAL ERROR #2 - Using Categories with Pie Charts
+
+**Using `categories` parameter with pie charts in static mockups.**
+
+```sail
+/* ❌ WRONG - Pie charts do NOT use categories */
+a!pieChartField(
+  categories: {"Company A", "Company B", "Company C"},  /* ❌ Will cause error */
+  series: {
+    a!chartSeries(label: "Market Share", data: {32, 28, 18}, ...)
+  }
+)
+```
+
+**Fix:** Pie charts with static data use `series` ONLY. Each series is one slice with a single data value:
+
+```sail
+/* ✅ CORRECT - Pie charts use series only, each series = one slice */
+a!pieChartField(
+  series: {
+    a!chartSeries(label: "Company A", data: 32, color: "#3B82F6"),
+    a!chartSeries(label: "Company B", data: 28, color: "#10B981"),
+    a!chartSeries(label: "Company C", data: 18, color: "#F59E0B")
+  }
+)
+```
 
 ---
 

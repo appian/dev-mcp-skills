@@ -97,7 +97,7 @@ These functions exist and work correctly but have caveats:
 For detailed usage patterns, examples, and gotchas, see the sections below.
 
 **Documentation URLs:** Full documentation available at `https://docs.appian.com/suite/help/{VERSION}/{filename}`  
-Where **{VERSION}** is the Appian version configured in [SKILL.md Configuration section](../SKILL.md#configuration) (currently 26.5), and **{filename}** is from the Documentation column below.
+Where **{VERSION}** is the Appian version configured in [SKILL.md Configuration section](../SKILL.md#configuration) (currently 26.6), and **{filename}** is from the Documentation column below.
 
 | Function | Signature | Returns | Documentation | Purpose |
 |----------|-----------|---------|---------------|---------|
@@ -205,13 +205,13 @@ https://docs.appian.com/suite/help/{VERSION}/{filename}
 ```
 
 Where:
-- **{VERSION}** = The Appian version configured in SKILL.md (currently 26.5)
+- **{VERSION}** = The Appian version configured in SKILL.md (currently 26.6)
 - **{filename}** = Value from Documentation column (e.g., `fnc_date_and_time_adddatetime.html`)
 
 **Example:**
 - Function: `a!addDateTime()`
 - Documentation column: `fnc_date_and_time_adddatetime.html`
-- Full URL: `https://docs.appian.com/suite/help/26.5/fnc_date_and_time_adddatetime.html`
+- Full URL: `https://docs.appian.com/suite/help/26.6/fnc_date_and_time_adddatetime.html`
 - Use **WebFetch** tool to retrieve the official documentation page
 
 **For functions not in this table:**

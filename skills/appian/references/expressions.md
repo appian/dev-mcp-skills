@@ -544,7 +544,7 @@ If your expression requires any of these operations, search Appian docs FIRST:
 
 ```bash
 # Read configured version from SKILL.md Configuration section
-VERSION="26.5"
+VERSION="26.6"
 
 # Cache functions.json if not already cached
 if [ ! -f /tmp/appian-functions-$VERSION.json ]; then
@@ -613,6 +613,28 @@ Expression rules encapsulate reusable logic. Understanding when and how to manag
 - Removing or changing required inputs (breaking change)
 - Changing return type (breaking change)
 - Fundamentally different purpose (even if similar name)
+
+### Creation and Update Workflow
+
+**When creating or updating expression rules, follow Step 7 workflow from SKILL.md:**
+
+**Step 7A: Generate Expression**
+- Write the expression body as a string
+- Ensure all `ri!` references match input parameter names
+- Apply null safety patterns from null-safety-patterns.md
+- Use only verified functions (complete Step 4A first)
+
+**Step 7B: Validate Expression (MANDATORY)**
+- Load `references/validation-checkpoint.md` for complete workflow
+- Call `validateExpression` MCP tool with generated expression
+- If validation fails → Fix errors and retry (up to 3 attempts)
+- Common errors: syntax issues, unknown `ri!` names, type mismatches
+
+**Step 7C: Create or Update (Only After Validation Passes)**
+- ✅ Validation passed → Call `createExpressionRule` or `updateExpressionRule`
+- Include validated expression, inputs array, and metadata
+
+**Important:** Always validate expressions before creating or updating. This catches errors early and enables automatic retry, reducing failed object creations.
 
 <a name="input-design-patterns"></a>
 ### Input Design Patterns

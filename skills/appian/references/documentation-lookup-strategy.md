@@ -1,10 +1,11 @@
 # Documentation Lookup Strategy
 
-**Context:** This reference details the three-tier documentation lookup strategy mentioned in SKILL.md Step 3. Use this when you need to look up functions, patterns, or recipes beyond the loaded skill references.
+**Context:** This reference details the three-tier documentation lookup strategy mentioned in SKILL.md Step 3. Use this when you need to look up functions, components, patterns, or recipes beyond the loaded skill references.
 
 **When to load this file:**
 - Step 3 checkpoint redirects you here for tier details
 - You need curl commands for functions.json lookups
+- You need component registry lookups
 - You need error handling guidance for tier fallbacks
 - You need to understand tier selection logic
 
@@ -26,6 +27,15 @@ When you need information beyond the loaded skill references, use this three-tie
 4. **If Tier 2 fails** → Skip Tier 3 (unreliable for existence checks), go to best-effort
 5. **Best-effort** — Use Tier 1 only, inform user function existence could not be verified
 
+**For component existence/signature queries:**
+1. **Tier 1** — Check components-registry.json
+   - If exists=false → **STOP** (definitive "No", use alternatives)
+   - If exists=true AND hasInstructionFile=true → Load instruction file
+   - If exists=true AND hasInstructionFile=false → Proceed to Tier 2
+2. **Tier 2** — Check functions.json for component (yes, components are in functions.json!)
+3. **If Tier 2 fails** → Skip Tier 3, use best-effort
+4. **Best-effort** — Use Tier 1 only, inform user component details unavailable
+
 **For patterns/recipes/best practices queries:**
 1. **Tier 1** — Check skill references first
    - If fully documented → Use Tier 1 (no further lookup needed)
@@ -34,13 +44,13 @@ When you need information beyond the loaded skill references, use this three-tie
 3. **If Tier 3 fails** → Best-effort with Tier 1 only
 4. **Best-effort** — Use Tier 1 only, inform user official patterns unavailable
 
-**For mixed queries (function + pattern):**
+**For mixed queries (function/component + pattern):**
 1. **Tier 1** — Check skill references for both aspects
-2. **Tier 2** — Look up function existence/signature (if needed)
+2. **Tier 2** — Look up function/component existence/signature (if needed)
 3. **Tier 3** — Search for patterns/recipes (if needed)
 4. **Combine results** from both Tier 2 and Tier 3 with Tier 1 context
 
-**Rationale:** Tier 3 cannot definitively confirm function non-existence (may return related results). For function lookups, failed Tier 2 means no definitive answer is possible—skip Tier 3 to avoid false positives. Anti-hallucination list in Tier 1 is authoritative for known non-existent functions.
+**Rationale:** Tier 3 cannot definitively confirm function/component non-existence (may return related results). For existence lookups, failed Tier 2 means no definitive answer is possible—skip Tier 3 to avoid false positives. Anti-hallucination lists in Tier 1 are authoritative for known non-existent items.
 
 ---
 
@@ -54,6 +64,7 @@ When you need information beyond the loaded skill references, use this three-tie
 
 **When it's sufficient:**
 - Function is well-documented in function-reference.md
+- Component exists in components-registry.json with instruction file
 - Pattern files exist (array-patterns.md, match-foreach-patterns.md, etc.)
 - Detailed examples and usage notes are present
 
@@ -63,7 +74,7 @@ When you need information beyond the loaded skill references, use this three-tie
 
 ---
 
-## Tier 2: functions.json + curl (Precise Function Lookups)
+## Tier 2A: functions.json + curl (Precise Function Lookups)
 
 **What it provides:**
 - Definitive existence check (function exists or doesn't)
@@ -81,19 +92,24 @@ When you need information beyond the loaded skill references, use this three-tie
 
 **Step 1:** Read configured version from SKILL.md Configuration section.
 
+```bash
+# Read the Appian Version from SKILL.md Configuration section
+VERSION="26.6"  # Use the configured version
+```
+
 **Step 2:** Check function existence (single command)
 
 ```bash
 # Look up function (case-insensitive, follows redirects)
-curl -sL "https://docs.appian.com/suite/help/26.6/functions.json" | jq -r '.["a!queryrecordtype"]'
-# Returns: "/suite/help/26.6/fnc_system_queryrecordtype.html" if exists
+curl -sL "https://docs.appian.com/suite/help/$VERSION/functions.json" | jq -r '.["a!queryrecordtype"]'
+# Returns: "/suite/help/$VERSION/fnc_system_queryrecordtype.html" if exists
 # Returns: null if doesn't exist (DEFINITIVE)
 ```
 
 **Step 3:** Fetch documentation page (if function exists and you need full details)
 
 ```bash
-DOC_PATH=$(curl -sL "https://docs.appian.com/suite/help/26.6/functions.json" | jq -r '.["a!queryrecordtype"]')
+DOC_PATH=$(curl -sL "https://docs.appian.com/suite/help/$VERSION/functions.json" | jq -r '.["a!queryrecordtype"]')
 if [ "$DOC_PATH" != "null" ]; then
   curl -sL "https://docs.appian.com$DOC_PATH"
 fi
@@ -101,8 +117,8 @@ fi
 
 > **Performance tip:** For multiple lookups in one session, cache functions.json locally:
 > ```bash
-> curl -sL "https://docs.appian.com/suite/help/26.6/functions.json" > /tmp/appian-functions.json
-> jq -r '.["functionname"]' /tmp/appian-functions.json
+> curl -sL "https://docs.appian.com/suite/help/$VERSION/functions.json" > /tmp/appian-functions-$VERSION.json
+> jq -r '.["functionname"]' /tmp/appian-functions-$VERSION.json
 > ```
 
 **Step 4:** Extract key information
@@ -120,6 +136,12 @@ fi
 - 📌 Version-locked (not cross-version mixing)
 
 **Fallback:** If configured version not found, default to 26.6 (latest).
+
+**Version behavior:**
+- The `-L` flag follows redirects automatically (some versions redirect to latest)
+- Most versions have dedicated documentation (26.6, 26.3, 25.4, 25.3, etc.)
+- Version 26.5 redirects to 26.6 (documented in SKILL.md Configuration)
+- Using $VERSION ensures you get the closest available documentation for your environment
 
 **Failure handling:**
 - If curl fails (network timeout, DNS failure, non-200 response): **skip Tier 3** (unreliable for function existence), go to best-effort
@@ -141,6 +163,134 @@ fi
 - If successful: use the redirected version (Appian maintains backward compatibility)
 - Optionally inform user: "Note: Using functions.json from version 26.7 (26.6 redirected)"
 - If redirect fails or loops: treat as network failure, skip Tier 3, go to best-effort
+
+---
+
+## Tier 2B: components-registry.json + functions.json (Component Lookups)
+
+**What it provides:**
+- Component existence check via registry (exists true/false)
+- Instruction file mapping (if hasInstructionFile=true)
+- Critical warnings for components
+- Official component documentation via functions.json
+- Parent/child relationship hints
+
+**Use for:**
+- ✅ **Component existence checks** - "Does `a!richTextEditor` exist?" (definitive yes/no from registry)
+- ✅ **Instruction file discovery** - "Which instruction file covers `a!gridField`?"
+- ✅ **Critical warnings** - "What are the gotchas for `a!gridField`?"
+- ✅ **Component signature** - Parameters, parent/child relationships (from functions.json)
+- ✅ **Unknown components** - Interface validation mentions a component
+
+**Workflow:**
+
+**Step 1:** Check components-registry.json
+
+```bash
+# Registry location
+cat skills/appian/registry/components-registry.json | jq '.["a!gridField"]'
+```
+
+**Step 2:** Interpret registry response
+
+**If exists=false:**
+```json
+{
+  "exists": false,
+  "reason": "No rich text editor component exists in Appian",
+  "alternatives": [
+    {"component": "a!paragraphField", "useCase": "For multi-line text input"},
+    {"component": "a!styledTextEditorField", "useCase": "For rich text editing"}
+  ]
+}
+```
+→ **STOP**. Component doesn't exist. Use alternatives.
+
+**If exists=true AND hasInstructionFile=true:**
+```json
+{
+  "exists": true,
+  "hasInstructionFile": true,
+  "instructionFile": "components/grid-field-instructions.md",
+  "criticalWarnings": [
+    "showSearchBox only works with recordType! data",
+    "showRefreshButton only works with recordType! data"
+  ]
+}
+```
+→ Load the instruction file. You have complete guidance.
+
+**If exists=true AND hasInstructionFile=false:**
+```json
+{
+  "exists": true,
+  "hasInstructionFile": false,
+  "parameterReference": "component-reference.md#atextField"
+}
+```
+→ Proceed to Step 3 (functions.json lookup) for full component signature.
+
+**Step 3:** Fetch component details from functions.json (if hasInstructionFile=false)
+
+```bash
+# Read VERSION from SKILL.md Configuration section
+VERSION="26.6"
+
+# Components are in functions.json! (Same as functions)
+curl -sL "https://docs.appian.com/suite/help/$VERSION/functions.json" | jq -r '.["a!textfield"]'
+# Returns: "/suite/help/$VERSION/Text_Component.html" if exists
+# Returns: null if doesn't exist
+
+# Fetch full documentation
+DOC_PATH=$(curl -sL "https://docs.appian.com/suite/help/$VERSION/functions.json" | jq -r '.["a!textfield"]')
+if [ "$DOC_PATH" != "null" ]; then
+  curl -sL "https://docs.appian.com$DOC_PATH"
+fi
+```
+
+**Step 4:** Extract component information from documentation page
+
+- Component function signature (e.g., `a!textField(label, value, saveInto, ...)`)
+- All parameters with types, required/optional, descriptions
+- Valid parent components (where this can be used)
+- Required/optional child components
+- Compatibility notes
+
+**Advantages:**
+- ✅ Registry provides instant existence check
+- ✅ Registry maps to instruction files (best practices, anti-patterns)
+- ✅ functions.json provides official signatures for all components
+- ✅ Critical warnings surfaced immediately
+- ✅ Definitive negative results (component doesn't exist)
+
+**Failure handling:**
+- If registry file not found: **CRITICAL ERROR** - registry is required for component verification
+- If functions.json lookup fails: Skip Tier 3, use registry + component-reference.md only
+- Inform user: "Component exists (per registry), but couldn't fetch official signature. Using parameter reference."
+
+**Example workflow:**
+
+```
+User: "Can I use a!richTextEditor for formatted text input?"
+
+1. Check registry: a!richTextEditor
+   → exists=false
+   → alternatives: a!paragraphField, a!styledTextEditorField, a!richTextDisplayField
+2. STOP. Answer: "No, a!richTextEditor doesn't exist. Use a!styledTextEditorField for input or a!richTextDisplayField for display."
+```
+
+```
+User: "Create a form with a!textField"
+
+1. Check registry: a!textField
+   → exists=true
+   → hasInstructionFile=false
+   → parameterReference: component-reference.md#atextField
+2. Load component-reference.md section (already loaded in Step 1)
+3. (Optional) Fetch from functions.json if need full signature:
+   curl functions.json → /suite/help/$VERSION/Text_Component.html
+4. Proceed with implementation using registry + component-reference.md
+```
 
 ---
 
@@ -177,7 +327,7 @@ fi
 - `content`: Focused snippet from specific documentation section (markdown)
 
 **Limitations:**
-- ❌ **Cannot definitively confirm non-existence** - May return related results even if exact function doesn't exist (e.g., searching "regexmatch" returns "like()" and pattern matching alternatives)
+- ❌ **Cannot definitively confirm non-existence** - May return related results even if exact function/component doesn't exist (e.g., searching "regexmatch" returns "like()" and pattern matching alternatives)
 - ⚠️ **Quality depends on official docs** - If Appian docs lack practical examples, search won't find them
 - 🌫️ **Semantic ambiguity** - May return broader results than exact match needed
 
@@ -189,13 +339,13 @@ fi
 | Tool not in tool list | Proceed without Tier 3, note documentation search is unavailable |
 | Empty/irrelevant results | Inform user official docs lacked coverage for the query, proceed with skill references |
 
-**When Tier 3 results mention functions:**
-- **If function is critical to pattern implementation:** Verify existence via Tier 2 before using
-  - Example: Tier 3 says "Use a!filterData() to filter grid results" → verify a!filterData() exists
-  - Prevents implementing patterns with non-existent functions
-- **If function is incidental/example only:** Trust Tier 3 content (don't over-verify)
+**When Tier 3 results mention functions/components:**
+- **If function/component is critical to pattern implementation:** Verify existence via Tier 2 before using
+  - Example: Tier 3 says "Use a!filterData() to filter grid results" → verify a!filterData() exists via Tier 2
+  - Prevents implementing patterns with non-existent functions/components
+- **If function/component is incidental/example only:** Trust Tier 3 content (don't over-verify)
   - Example: Tier 3 mentions "similar to a!forEach()" → no verification needed (just context)
-- **Use judgment:** If uncertain whether function is critical, verify via Tier 2 (safe default)
+- **Use judgment:** If uncertain whether function/component is critical, verify via Tier 2 (safe default)
 
 **General rule:** When proceeding without Tier 3, inform the user what could not be verified and what assumptions were made.
 
@@ -207,8 +357,10 @@ fi
 
 | Question Type | Use Tier | Example |
 |---------------|----------|---------|
-| Function exists? | **Tier 2** (functions.json) | "Does regexmatch() exist?" → definitive yes/no |
-| Function signature? | **Tier 2** (functions.json) | "Parameters for a!queryRecordType()?" |
+| Function exists? | **Tier 2A** (functions.json) | "Does regexmatch() exist?" → definitive yes/no |
+| Function signature? | **Tier 2A** (functions.json) | "Parameters for a!queryRecordType()?" |
+| Component exists? | **Tier 1** (registry) → **Tier 2B** (functions.json) | "Does a!richTextEditor exist?" → check registry first |
+| Component signature? | **Tier 1** (registry) → **Tier 2B** (functions.json) | "Parameters for a!gridField?" → registry for warnings, functions.json for full signature |
 | Recipe? | **Tier 3** (search tool) | "Show me query recipes for filtering" |
 | UI/UX pattern? | **Tier 3** (search tool) | "What is the drilldown pattern?" |
 | "How to" question? | **Tier 3** (search tool) | "How to filter a grid by dropdown?" |
@@ -219,123 +371,12 @@ fi
 
 | Tier | Strength | Speed | Precision | Use Case |
 |------|----------|-------|-----------|----------|
-| **1: Skill Refs** | Curated examples, anti-patterns | ⚡⚡⚡ Instant | 🎯🎯🎯 Exact | First stop for all queries |
-| **2: functions.json** | Existence checks, signatures | ⚡⚡ Fast | 🎯🎯🎯 Exact | Function verification |
+| **1: Skill Refs** | Curated examples, anti-patterns, registry | ⚡⚡⚡ Instant | 🎯🎯🎯 Exact | First stop for all queries |
+| **2A: functions.json** | Function existence checks, signatures | ⚡⚡ Fast | 🎯🎯🎯 Exact | Function verification |
+| **2B: registry + functions.json** | Component existence, instruction files, signatures | ⚡⚡ Fast | 🎯🎯🎯 Exact | Component verification |
 | **3: Search Tool** | Recipes, patterns, best practices | ⚡ Slower | 🌫️ Semantic | Recipes, UI/UX patterns, "how to" |
 
 **Always start with Tier 1.** Only proceed to Tier 2/3 when skill references lack sufficient detail.
-
----
-
-## Examples (Extended)
-
-### **Implementation Example 1: Expression rule with unknown function**
-
-**Request:** "Create an expression rule that calculates distance in miles between two GPS coordinates"
-
-**Step 1-2:** Load universal patterns + expression-rules.md
-
-**Step 3 [CHECKPOINT]:**
-- Check function-reference.md for distance functions → Not found
-- Custom logic detected (distance calculation)
-- **Automatically proceed to Tier 2** (special case: custom logic requires built-in check)
-- Search functions.json for "distance" → Found `a!distanceBetween()`
-- Fetch signature: `a!distanceBetween(startLatitude, startLongitude, endLatitude, endLongitude, unit)`
-
-**Step 4:** No supplementary references needed
-
-**Step 5:** Verify: function confirmed, null safety patterns loaded, types verified
-
-**Step 6:** Implement using a!distanceBetween() with unit: "MILES"
-
-**Result:** 5-line expression vs 40-line custom Haversine formula
-
----
-
-### **Implementation Example 2: Interface with unknown pattern**
-
-**Request:** "Create interface with grid that drills down to order details on row click"
-
-**Step 1-2:** Load universal patterns + interfaces.md, sail.md
-
-**Step 3 [CHECKPOINT]:**
-- Check skill references for drilldown pattern → Not fully documented
-- **Automatically proceed to Tier 3** (pattern not in Tier 1)
-- Search "drilldown pattern grids Appian" → Found official recipe
-- Pattern: Use local variable + conditional section (local!selectedRow + showWhen)
-
-**Step 4:** No supplementary references needed
-
-**Step 5:** Verify: pattern confirmed, components verified (a!gridField, a!sectionLayout)
-
-**Step 6:** Implement using official drilldown pattern
-
-**Result:** 1 validation error vs 4 errors when inventing (75% reduction)
-
----
-
-### **Q&A Example 1: Function existence (anti-hallucination list)**
-
-**Question:** "Does the function regexmatch() exist in Appian?"
-
-**Tier 1 check:** function-reference.md anti-hallucination list → regexmatch() listed as NON-EXISTENT
-
-**Answer:** "No, regexmatch() does not exist. Use like() or find() instead."
-
-**Stop after answer** (no implementation requested)
-
----
-
-### **Q&A Example 2: Function existence (not in Tier 1)**
-
-**Question:** "Does a!flatten() exist in Appian?"
-
-**Tier 1 check:** function-reference.md → Not listed  
-**Tier 2 check:** Search functions.json → Found `a!flatten()`
-
-**Answer:** "Yes, a!flatten() exists. It flattens nested arrays into a single-level array."
-
-**Stop after answer** (no implementation requested)
-
----
-
-### **Q&A Example 3: Function signature**
-
-**Question:** "What are the parameters for a!startProcess()?"
-
-**Tier 1 check:** function-reference.md → Not detailed  
-**Tier 2 check:** Search functions.json → Found signature
-
-**Answer:** "a!startProcess(processModel, processParameters, onSuccess, onError)"
-
-**Stop after answer**
-
----
-
-### **Q&A Example 4: Pattern lookup**
-
-**Question:** "What is the drilldown pattern for grids in Appian?"
-
-**Tier 1 check:** interfaces.md, sail.md → Basic grid info only  
-**Tier 3 check:** Search "drilldown pattern grids" → Found official recipe
-
-**Answer:** "Use local!selectedRow with a!dynamicLink() in grid column, then conditional a!sectionLayout() below grid that shows when local!selectedRow is not null."
-
-**Stop after answer**
-
----
-
-### **Q&A Example 5: Mixed query**
-
-**Question:** "What are the parameters for a!gridField() and show me recipes for editable grids?"
-
-**Tier 1 check:** function-reference.md → Not detailed  
-**Tier 2 check:** Search functions.json for signature  
-**Tier 3 check:** Search "editable grid recipes"
-
-**Answer:** [Combine signature from Tier 2 + recipes from Tier 3]
-
-**Stop after answer**
 
 ---
 
@@ -343,8 +384,8 @@ fi
 
 **This file supports SKILL.md Step 3 [MANDATORY CHECKPOINT]:**
 
-1. **Step 3A (expression rules)** → Use Tier 2 workflow from this file
-2. **Step 3B (interfaces)** → Use Tier 3 workflow from this file
+1. **Step 3A (expression rules)** → Use Tier 2A workflow from this file
+2. **Step 3B (interfaces)** → Use Tier 1 (registry) + Tier 2B + Tier 3 workflows from this file
 3. **Error handling** → Apply failure mode guidance from Tier 2/3 sections
 
 **Return to SKILL.md Step 4** after completing tier lookups.

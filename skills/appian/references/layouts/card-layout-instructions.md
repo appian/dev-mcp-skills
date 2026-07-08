@@ -151,6 +151,64 @@ a!columnsLayout(
     - WIDE: 800px
     - WIDE_PLUS: 1120px
 
+### Choosing cardWidth Based on Card Count
+
+**Rule of thumb:** Assume ~1200-1400px viewport width for typical desktop layouts.
+
+**For KPI cards (compact content with icon + metric):**
+- **2 cards per row:** `MEDIUM` (400px) or `MEDIUM_PLUS` (560px)
+- **3 cards per row:** `NARROW_PLUS` (320px) - fits comfortably
+- **4 cards per row:** `NARROW` (240px) - fits on one row
+- **5+ cards per row:** `EXTRA_NARROW` (80px) or consider pagination/scrolling
+
+**For charts displayed side-by-side:**
+- **2 charts:** `WIDE` (800px) - **recommended** for balanced layout with good chart readability
+- **2 charts (compact):** `MEDIUM` (400px) - fits but leaves whitespace, charts may be too small
+- **3 charts:** `NARROW_PLUS` (320px) - fits three across
+- **4+ charts:** Consider stacking vertically or using tabs instead
+
+**For content cards (lists, forms, detailed content):**
+- **2 cards:** `WIDE` (800px) or `MEDIUM_PLUS` (560px)
+- **3 cards:** `MEDIUM` (400px) or `NARROW_PLUS` (320px)
+- **4 cards:** `NARROW_PLUS` (320px) or `NARROW` (240px)
+
+**Quick calculation:** `Viewport width (~1200px) / cardWidth = cards per row`
+
+Examples:
+- `NARROW` (240px): 1200 / 240 = **~5 cards** per row
+- `NARROW_PLUS` (320px): 1200 / 320 = **~3-4 cards** per row
+- `MEDIUM` (400px): 1200 / 400 = **~3 cards** per row
+- `WIDE` (800px): 1200 / 800 = **~1-2 cards** per row
+
+**Common mistakes:**
+```sail
+/* ❌ WRONG - 4 KPIs with NARROW_PLUS wraps to 2 rows */
+a!cardGroupLayout(
+  cards: {/* 4 KPI cards */},
+  cardWidth: "NARROW_PLUS"  /* 320px × 4 = 1280px, exceeds viewport */
+)
+
+/* ✅ CORRECT - 4 KPIs with NARROW fits on 1 row */
+a!cardGroupLayout(
+  cards: {/* 4 KPI cards */},
+  cardWidth: "NARROW"  /* 240px × 4 = 960px, fits comfortably */
+)
+
+/* ❌ WRONG - 2 charts with MEDIUM leaves too much whitespace */
+a!cardGroupLayout(
+  cards: {/* 2 chart cards */},
+  cardWidth: "MEDIUM"  /* 400px × 2 = 800px, charts too small */
+)
+
+/* ✅ CORRECT - 2 charts with WIDE uses space better */
+a!cardGroupLayout(
+  cards: {/* 2 chart cards */},
+  cardWidth: "WIDE"  /* 800px × 2 = 1600px, but wraps responsively */
+)
+```
+
+**Tip:** When in doubt, test with different viewport sizes or start with the recommended width and adjust based on visual appearance.
+
 ### Background Color Best Practices
 
 **Modern Approach: Favor White Backgrounds with Decorative Accents**

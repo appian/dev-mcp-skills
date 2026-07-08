@@ -1012,6 +1012,80 @@ fields: a!aggregationFields(
 )
 ```
 
+### Sorting Aggregated Results
+
+**CRITICAL:** When using `a!aggregationFields()` with `a!grouping()`, you MUST sort by the **alias** (text string), NOT the field reference.
+
+**Why?** Aggregation queries return **maps** (not record instances), so sorting must reference **map property names** (aliases), not field references.
+
+```sail
+/* ❌ WRONG - Sorting by field reference in aggregation query */
+a!queryRecordType(
+  recordType: 'recordType!Case',
+  fields: a!aggregationFields(
+    groupings: {
+      a!grouping(
+        field: 'recordType!Case.fields.createdAt',
+        alias: "createdDate",
+        interval: "DATE_TEXT"
+      )
+    },
+    measures: {
+      a!measure(function: "COUNT", field: 'recordType!Case.fields.id', alias: "count")
+    }
+  ),
+  pagingInfo: a!pagingInfo(
+    startIndex: 1,
+    batchSize: 10,
+    sort: a!sortInfo(
+      field: 'recordType!Case.fields.createdAt',  /* ❌ Field reference - FAILS */
+      ascending: true
+    )
+  )
+)
+/* Error: "Query has an invalid sort defined. When aggregating data using 
+   a!grouping() and a!measure(), the sort must reference a field alias." */
+
+/* ✅ CORRECT - Sort by alias (text string) */
+a!queryRecordType(
+  recordType: 'recordType!Case',
+  fields: a!aggregationFields(
+    groupings: {
+      a!grouping(
+        field: 'recordType!Case.fields.createdAt',
+        alias: "createdDate",  /* Define alias */
+        interval: "DATE_TEXT"
+      )
+    },
+    measures: {
+      a!measure(function: "COUNT", field: 'recordType!Case.fields.id', alias: "count")
+    }
+  ),
+  pagingInfo: a!pagingInfo(
+    startIndex: 1,
+    batchSize: 10,
+    sort: a!sortInfo(
+      field: "createdDate",  /* ✅ Use alias (text string) */
+      ascending: true
+    )
+  )
+)
+```
+
+**Pattern:**
+- Regular queries: `field: 'recordType!Type.fields.fieldName'`
+- Aggregation queries: `field: "aliasName"` (must match alias from a!grouping or a!measure)
+
+**Multiple sort fields with aggregations:**
+```sail
+pagingInfo: a!pagingInfo(
+  sort: {
+    a!sortInfo(field: "statusLabel", ascending: true),   /* Both aliases */
+    a!sortInfo(field: "count", ascending: false)
+  }
+)
+```
+
 ---
 
 ## Result Handling Patterns

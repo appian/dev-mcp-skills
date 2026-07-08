@@ -85,3 +85,21 @@ Callable from: interfaces, other expression rules, process model script tasks, X
 - **Updating inputs without updating expression** — renamed inputs break `ri!` references
 - **Circular references** — A calls B, B calls A = runtime error
 - **Not using application prefix** — rules without prefix collide in shared environments
+
+## Test Cases
+
+Test cases save a set of inputs (and optionally expected outputs) against an expression rule so the platform can re-run them to verify the rule behaves correctly. Create them after saving a rule with non-trivial logic; skip them for trivial one-liners.
+
+### Assertion Types
+
+There are three modes — choose based on how much you want to verify:
+
+- **NO_ERRORS** (default) — passes if the rule evaluates without throwing. Use when you just want to confirm the rule runs cleanly with a given set of inputs.
+- **EXPECTED_OUTPUT** — passes if the rule's return value matches an expected value. Use when you know the exact output for a given input.
+- **RESULT_ASSERTIONS** — passes if a custom SAIL expression over the result returns true. Use for range checks, contains checks, or other conditions that can't be expressed as a single equality.
+
+### Flow
+
+1. Create test cases for the rule after it is saved
+2. Run all test cases and review pass/fail results
+3. If any fail, fix the rule logic or the test case inputs, then re-run

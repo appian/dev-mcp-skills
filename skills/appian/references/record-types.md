@@ -118,6 +118,7 @@ A one-sided relationship breaks record type traversal.
 - **ONE_TO_MANY to entities**: pluralize target in camelCase — `CASE_NOTE` → `caseNotes`
 - **ONE_TO_MANY to junction**: pluralize the other entity — CASE→CASE_TAG→TAG: name is `tags`
 - **ONE_TO_ONE**: same as MANY_TO_ONE on FK side; entity name on other side
+- Note: Relationship names cannot be the same as a field name that already exists on the record type
 
 ### Relationship Types
 

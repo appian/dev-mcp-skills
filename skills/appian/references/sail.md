@@ -326,7 +326,26 @@ a!gridField(
 )
 ```
 
-The action reference comes from the record type's configured actions. This renders a button above the grid that launches the action's process model form. RELATED_ACTIONs do not auto-surface on custom grids — you must wire them explicitly with `recordActions`.
+The action reference comes from the record type's configured actions. This renders a button above the grid that launches the action's process model form. Neither LIST_ACTIONs nor RELATED_ACTIONs auto-surface on custom grids — you must wire them explicitly with `recordActions` (or `a!recordActionField()`, below). For RELATED_ACTIONs, set `identifier` on each `a!recordActionItem()` to the row's primary key (`fv!row[...id]`).
+
+### Record Actions with a!recordActionField()
+
+Outside a grid — or to position an action next to specific content on a complex interface — use `a!recordActionField()` directly:
+
+```
+a!recordActionField(
+  actions: {
+    a!recordActionItem(
+      action: 'recordType!{rtUuid}Name.actions.{actionKey}',
+      /* required for related actions — omit for list actions */
+      identifier: rv!record['recordType!{rtUuid}Name.fields.{idUuid}id']
+    )
+  },
+  style: "TOOLBAR"
+)
+```
+
+See `references/component-reference.md` for the full `a!recordActionField()` / `a!recordActionItem()` signatures, and `references/appian-workflow-patterns.md` for placement guidance (shortcuts vs. field vs. grid).
 
 ### Record Link in Grid
 

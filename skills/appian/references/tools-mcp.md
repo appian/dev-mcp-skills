@@ -377,7 +377,7 @@ Goal: Query Case with related Status fields
 ### Record actions
 - `contextExpr` keys must match process model parameter names (case-sensitive)
 - `icon` is a Font Awesome hex code (e.g., `"f044"`), not a name (not `"pencil"`)
-- RELATED_ACTIONs only surface on record views, not on custom `a!gridField` grids
+- Configuring an action does NOT place it in the UI. On a record view, related actions are surfaced via `relatedActionShortcuts` (or `a!recordActionField()`); the auto-generated related-actions tab is hidden via `hideRelatedActionsView: true` in modern apps. On custom `a!gridField()` grids, neither LIST_ACTIONs nor RELATED_ACTIONs auto-surface — wire them via the grid's `recordActions` parameter or `a!recordActionField()`. See `references/appian-workflow-patterns.md`
 
 ### Record events
 - `configureRecordEvents` returns 409 if already configured — check with `getRecordEventsConfig` first

@@ -441,6 +441,32 @@ Rich text color values: `"STANDARD"`, `"ACCENT"`, `"POSITIVE"`, `"NEGATIVE"`, `"
 | `a!reportLink()` | Link to a report | `label`, `report`, `showWhen` |
 | `a!newsEntryLink()` | Link to a news entry | `label`, `newsEntry`, `showWhen` |
 
+## Record Action Components
+
+Use these to surface configured record actions (LIST_ACTION / RELATED_ACTION) on an interface. Configuring an action on the record type does **not** make it appear — related actions shown outside a record view (e.g., grid rows), and list actions on custom grids, must be placed explicitly. See `references/record-types.md` for configuration and `references/appian-workflow-patterns.md` ("Surfacing Record Actions on Interfaces") for when to use each placement.
+
+### a!recordActionField
+
+| Parameter | Type | Description |
+|---|---|---|
+| `actions` | Any Type | List of record action items to display, configured with `a!recordActionItem()` |
+| `style` | Text | How the actions are displayed. Valid: `"TOOLBAR"` (default), `"LINKS"`, `"CARDS"`, `"SIDEBAR"`, `"CALL_TO_ACTION"`, `"MENU"`, `"MENU_ICON"`, `"TOOLBAR_PRIMARY"`, `"SIDEBAR_PRIMARY"` |
+| `display` | Text | How each action label is displayed. Valid: `"LABEL_AND_ICON"` (default), `"LABEL"`, `"ICON"` |
+| `openActionsIn` | Text | How actions open. Valid: `"DIALOG"` (default), `"NEW_TAB"`, `"SAME_TAB"`. Does not apply to Appian Mobile |
+| `align` | Text | Alignment of the action(s). Valid: `"START"`, `"CENTER"`, `"END"` |
+| `accessibilityText` | Text | Additional text announced by screen readers; no visible change |
+| `showWhen` | Boolean | Controls visibility. When `false`, hidden and not evaluated. Default: `true` |
+| `securityOnDemand` | Boolean | When security is evaluated for `"MENU"`/`"MENU_ICON"` styles. Default `true` = on click; `false` = on interface load |
+
+### a!recordActionItem
+
+| Parameter | Type | Description |
+|---|---|---|
+| `action` | Record Action Reference | A record action reference via the `recordType!` domain, e.g., `recordType!{uuid}Case.actions.editCase`. Uses the display name, process model, icon, context, and visibility set in the record type's action config |
+| `identifier` | Any Type | The record's identifier (typically the primary key value) — **required when `action` references a related action**. For composite primary keys, provide all key field values. Not needed for a record list action |
+
+> On a custom `a!gridField()`, list actions and related actions are surfaced via the grid's `recordActions` parameter (which also takes `a!recordActionItem()` items) — see `references/sail.md`.
+
 ## Wizard Components
 
 ### a!wizardLayout

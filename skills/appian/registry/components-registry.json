@@ -580,7 +580,8 @@
     "requiredChildren": null,
     "optionalChildren": null,
     "criticalWarnings": [
-      "Use disabled parameter for toggle, NOT readOnly - readOnly parameter does not exist for checkboxes"
+      "Use disabled parameter for toggle, NOT readOnly - readOnly parameter does not exist for checkboxes",
+      "choiceLabels AND choiceValues are always required, including when using the data parameter - data does not auto-populate options"
     ]
   },
   "a!dropdownByIndexField": {
@@ -611,7 +612,8 @@
     "requiredChildren": null,
     "optionalChildren": null,
     "criticalWarnings": [
-      "Use disabled parameter for toggle, NOT readOnly - readOnly parameter does not exist for dropdowns"
+      "Use disabled parameter for toggle, NOT readOnly - readOnly parameter does not exist for dropdowns",
+      "choiceLabels AND choiceValues are always required, including when using the data parameter - data does not auto-populate options"
     ]
   },
   "a!multipleDropdownByIndexField": {
@@ -641,7 +643,9 @@
     ],
     "requiredChildren": null,
     "optionalChildren": null,
-    "criticalWarnings": []
+    "criticalWarnings": [
+      "choiceLabels AND choiceValues are always required, including when using the data parameter - data does not auto-populate options"
+    ]
   },
   "a!radioButtonByIndexField": {
     "exists": false,
@@ -670,7 +674,9 @@
     ],
     "requiredChildren": null,
     "optionalChildren": null,
-    "criticalWarnings": []
+    "criticalWarnings": [
+      "choiceLabels AND choiceValues are always required, including when using the data parameter - data does not auto-populate options"
+    ]
   },
   "a!toggleField": {
     "exists": true,

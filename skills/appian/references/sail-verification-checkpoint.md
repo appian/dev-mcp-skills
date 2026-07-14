@@ -215,8 +215,9 @@ a!sectionLayout:
 
 a!dropdownField:
   - label
-  - choiceLabels
-  - choiceValues
+  - choiceLabels (REQUIRED even when using data param)
+  - choiceValues (REQUIRED even when using data param)
+  - data (optional record-type source; does NOT replace choiceLabels/choiceValues)
   - value
   - saveInto
   - disabled (NOT readOnly - doesn't exist)

@@ -1,8 +1,12 @@
 # Dropdown Patterns
 
-**Purpose:** Patterns for populating dropdown fields from lookup table record types vs hardcoded values.
+**Purpose:** Patterns for populating choice fields from lookup table record types vs hardcoded values.
 
-**When to use:** Building interfaces with dropdown fields for selection (Priority, Status, Type, Category, etc.).
+**When to use:** Building interfaces with choice fields for selection (Priority, Status, Type, Category, etc.).
+
+**Applies to all choice components:** `a!dropdownField`, `a!multipleDropdownField`, `a!checkboxField`, and `a!radioButtonField`. All four accept a records-powered `data` parameter and all four require `choiceLabels` and `choiceValues`. Examples below use `a!dropdownField`; the same rules apply to the others.
+
+> ⚠️ **`choiceLabels` and `choiceValues` are ALWAYS required — even when you pass a record type to `data`.** The `data` parameter replaces the *query*, not the choice mappings. A choice field with `data` but no `choiceValues`/`choiceLabels` renders empty. See "Two ways to populate from a record type" below.
 
 ---
 
@@ -30,14 +34,55 @@ Need a dropdown field?
 
 ---
 
-## Section 1: Query from Lookup Table Record Type
+## Section 1: Populate from Lookup Table Record Type
 
 **Use when:**
 - Lookup table record type exists (Priority, Status, Type, Category)
 - Values can be added/removed/modified by admins
 - Values have isActive flag for soft delete
 
-### Pattern: Query Active Lookup Values
+### Two ways to populate from a record type
+
+| Approach | How | When to prefer |
+|----------|-----|----------------|
+| **`data` parameter** (simplest) | Pass the record type (or `a!recordData()`) to `data`; point `choiceValues`/`choiceLabels` at record fields | Straightforward "all active rows" dropdowns — no local variable needed |
+| **Query into local + `index()`** | `a!queryRecordType(...).data` into a `local!`, then map with `index()` | When you reuse the same data elsewhere, need complex filtering, or must transform values |
+
+**Both require `choiceLabels` AND `choiceValues`.** Neither approach lets you omit them.
+
+### Pattern: `data` Parameter (Preferred for Simple Lookups)
+
+Pass the record type to `data` and point the choice parameters at record fields — `choiceValues` at the primary key, `choiceLabels` at the display field. No local variable or `index()` needed.
+
+```sail
+a!dropdownField(
+  label: "Priority",
+  placeholder: "Select a priority",
+  data: a!recordData(
+    recordType: 'recordType!{uuid}CM Case Priority',
+    filters: a!queryFilter(
+      field: 'recordType!{uuid}CM Case Priority.fields.{uuid}isActive',
+      operator: "=",
+      value: true
+    )
+  ),
+  /* choiceValues + choiceLabels are STILL REQUIRED with data */
+  choiceValues: 'recordType!{uuid}CM Case Priority.fields.{uuid}id',
+  choiceLabels: 'recordType!{uuid}CM Case Priority.fields.{uuid}label',
+  /* sort the choices; field is the literal "choiceLabels" or "choiceValues" */
+  sort: a!sortInfo(field: "choiceLabels", ascending: true),
+  value: local!priorityId,
+  saveInto: local!priorityId,
+  required: true
+)
+```
+
+**Notes:**
+- Default behavior if you accept it: labels use the first text field, values use the primary key — but set them explicitly.
+- To build a label from multiple fields, use `fv!data`: `choiceLabels: fv!data['recordType!{uuid}Location.fields.{uuid}city'] & " (" & fv!data['recordType!{uuid}Location.fields.{uuid}state'] & ")"`. You **cannot** reference related-record fields via `fv!data` in `choiceLabels`.
+- `sort` uses the literal string `"choiceLabels"` or `"choiceValues"` as its `field`, not a record field reference.
+
+### Pattern: Query Active Lookup Values (into a local variable)
 
 ❌ **WRONG - Hardcoded values:**
 ```sail
@@ -255,6 +300,35 @@ a!dropdownField(
 
 ## Section 3: Common Mistakes
 
+### Mistake 0: Passing `data` without `choiceValues`/`choiceLabels`
+
+The most common error. Passing a record type to `data` does **not** auto-populate the options — the field renders empty. `choiceValues` and `choiceLabels` are required regardless.
+
+❌ **WRONG - `data` alone, no choice mappings:**
+```sail
+a!dropdownField(
+  label: "Priority",
+  data: 'recordType!{uuid}CM Case Priority'
+  /* No choiceValues/choiceLabels → dropdown is empty */
+)
+```
+
+✅ **CORRECT - `data` plus record-field choice mappings:**
+```sail
+a!dropdownField(
+  label: "Priority",
+  data: 'recordType!{uuid}CM Case Priority',
+  choiceValues: 'recordType!{uuid}CM Case Priority.fields.{uuid}id',
+  choiceLabels: 'recordType!{uuid}CM Case Priority.fields.{uuid}label',
+  value: local!priorityId,
+  saveInto: local!priorityId
+)
+```
+
+This applies equally to `a!multipleDropdownField`, `a!checkboxField`, and `a!radioButtonField`.
+
+---
+
 ### Mistake 1: Querying Inside Dropdown
 
 ❌ **WRONG - Query runs on every interaction:**
@@ -339,14 +413,18 @@ a!queryRecordType(
 
 | Scenario | Pattern |
 |----------|---------|
-| Priority, Status, Type, Category lookup tables | ✅ Query from record type |
-| Admin-managed values | ✅ Query from record type |
-| Values can be added/removed | ✅ Query from record type |
+| Priority, Status, Type, Category lookup tables | ✅ From record type (`data` param, or query into local) |
+| Admin-managed values | ✅ From record type |
+| Values can be added/removed | ✅ From record type |
+| Simple "all active rows" dropdown | ✅ `data` parameter (simplest) |
+| Reuse same data elsewhere / complex transforms | ✅ Query into local + `index()` |
 | True/False, Yes/No | ✅ Hardcode acceptable |
 | Days, Months, System constants | ✅ Hardcode acceptable |
 | Fixed business rules (never change) | ✅ Hardcode acceptable |
 
-**When in doubt:** Query from record type. It's more flexible and maintainable.
+**Whichever record-type approach you use, always set `choiceLabels` AND `choiceValues`.**
+
+**When in doubt:** Populate from record type. It's more flexible and maintainable.
 
 ---
 

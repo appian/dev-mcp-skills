@@ -541,6 +541,22 @@ Parameters: {
 
 ---
 
+##### Step 7D: Test Conditionally-Rendered Interfaces (`testInterface`)
+
+**Applies to interfaces only.** `createInterface` parses and design-checks the whole expression, but only **evaluates** the branches active under the default inputs (null unless you supply `testInputs`). A runtime error inside a branch that is inactive at creation — e.g., a component missing a required parameter in the `isUpdate = true` path — passes creation cleanly and fails only when a user triggers that branch.
+
+**After creating an interface with any input-dependent rendering, call `testInterface`** with inputs chosen to render each branch the default inputs do NOT exercise, and check `diagnostics.error`:
+
+- Create/update form gated by `isUpdate` → test with `isUpdate: true` (and a sample `record`)
+- `showWhen` / `if()` sections gated by a status, role, or flag → test with values that make each section render
+- Components fed by a record input (`ri!record`) → test with a populated record
+
+Repeat until every conditionally-rendered branch has been evaluated at least once. **Skip only** when the entire component tree already renders under the default inputs.
+
+See `references/validation-checkpoint.md` ("What createInterface / updateInterface Validate") for the full explanation.
+
+---
+
 ## Documentation Lookup Tiers (Overview)
 
 When you need information beyond loaded skill references, use this three-tier approach:

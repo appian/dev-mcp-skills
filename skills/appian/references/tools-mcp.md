@@ -385,8 +385,9 @@ Goal: Query Case with related Status fields
 - Events can only be written via Write Records node in process models — not via `a!writeRecords()`
 
 ### testInterface and testRule
-- `testInterface` renders the interface and returns the component tree + any `diagnostics.error` entries
-- Use it to catch runtime errors that expression validation misses (bad record references, type mismatches)
+- `testInterface` renders the interface with the inputs you provide and returns the component tree + any `diagnostics.error` entries
+- Use it to catch runtime errors that creation-time evaluation misses. `createInterface`/`updateInterface` parse and design-check the whole expression, but only **evaluate** the branches active under the default inputs (null unless `testInputs` were stored). A runtime error (e.g., a component missing a required parameter) inside an inactive branch — like an `isUpdate = true` form path — passes creation and surfaces only at runtime.
+- **After creating/updating an interface with conditional rendering (`isUpdate` flags, `showWhen`/`if()` sections, components fed by `ri!record`), call `testInterface` with inputs that render each otherwise-inactive branch** and check `diagnostics.error`. See `references/validation-checkpoint.md`.
 - `testRule` (type: `EXPRESSION_RULE` or `INTEGRATION`) executes with provided inputs and returns the result
 
 ### validateDesignObject vs validateExpression

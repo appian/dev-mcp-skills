@@ -180,10 +180,10 @@ These components do not exist in Appian SAIL. Do not use them:
 
 | Component | Description | Key Parameters |
 |---|---|---|
-| `a!dropdownField()` | Single-select dropdown | `label`, `placeholder`, `choiceLabels`, `choiceValues`, `data`, `value`, `saveInto`, `required`, `showWhen`, `searchDisplay` |
+| `a!dropdownField()` | Single-select dropdown | `label`, `placeholder`, `choiceLabels`, `choiceValues`, `data`, `sort`, `value`, `saveInto`, `required`, `showWhen`, `searchDisplay` |
 | `a!multipleDropdownField()` | Multi-select dropdown | Same as dropdownField but `value` is a list |
-| `a!radioButtonField()` | Radio button group | `label`, `choiceLabels`, `choiceValues`, `value`, `saveInto`, `required`, `choiceLayout`, `showWhen` |
-| `a!checkboxField()` | Checkbox group | `label`, `choiceLabels`, `choiceValues`, `value`, `saveInto`, `required`, `choiceLayout`, `showWhen` |
+| `a!radioButtonField()` | Radio button group | `label`, `choiceLabels`, `choiceValues`, `data`, `sort`, `value`, `saveInto`, `required`, `choiceLayout`, `showWhen` |
+| `a!checkboxField()` | Checkbox group | `label`, `choiceLabels`, `choiceValues`, `data`, `sort`, `value`, `saveInto`, `required`, `choiceLayout`, `showWhen` |
 | `a!cardChoiceField()` | Card-based selection (single or multiple) | `label`, `data`, `cardTemplate`, `value`, `saveInto`, `maxSelections`, `showWhen` — See components/card-choice-field-instructions.md |
 | `a!pickerField()` | Type-ahead picker | `label`, `labelPosition`, `value`, `saveInto`, `maxSelections`, `suggestFunction`, `required`, `showWhen` |
 
@@ -194,8 +194,8 @@ These components do not exist in Appian SAIL. Do not use them:
 | `label` | Text | Field label |
 | `labelPosition` | Text | `"ABOVE"` (default), `"ADJACENT"`, `"COLLAPSED"`, `"JUSTIFIED"` |
 | `placeholder` | Text | Placeholder text when no value selected |
-| `choiceLabels` | List of Text | Display labels for each option |
-| `choiceValues` | List | Values corresponding to each label |
+| `choiceLabels` | List | Display labels for each option. **Always required, including when `data` is set.** With `data`, use a record field reference (e.g., `recordType!Priority.fields.label`); use `fv!data[...]` only to format/combine multiple fields into one label |
+| `choiceValues` | List | Values corresponding to each label. **Always required, including when `data` is set.** With `data`, use a record field reference — usually the primary key (e.g., `recordType!Priority.fields.id`) |
 | `value` | Any Type | Currently selected value |
 | `saveInto` | Save | Target for saving selected value |
 | `required` | Boolean | Whether selection is required. Default: false |
@@ -204,8 +204,8 @@ These components do not exist in Appian SAIL. Do not use them:
 | `validations` | List of Text | Validation messages |
 | `showWhen` | Boolean | Controls visibility. Default: true |
 | `searchDisplay` | Text | `"AUTO"` (default), `"ON"`, `"OFF"` — controls search within dropdown |
-| `data` | Record Type | Records-powered data source — use instead of `choiceLabels`/`choiceValues` when choices come from a record type |
-| `sort` | Sort Info | Sort order for records-powered choices (used with `data`) |
+| `data` | Record Type / `a!recordData()` | Records-powered data source. Replaces querying into a local variable — but does **NOT** replace `choiceValues`/`choiceLabels`, which are still required and point at record fields. See `references/dropdown-patterns.md` |
+| `sort` | List of Sort Info | Sort order for records-powered choices (used with `data`). Use `"choiceLabels"` or `"choiceValues"` as the `a!sortInfo()` field |
 | `instructions` | Text | Help text displayed below the label |
 | `helpTooltip` | Text | Tooltip shown on hover |
 | `accessibilityText` | Text | Screen reader text |
@@ -213,14 +213,18 @@ These components do not exist in Appian SAIL. Do not use them:
 | `marginAbove` | Text | `"NONE"` (default), `"EVEN_LESS"`, `"LESS"`, `"STANDARD"`, `"MORE"`, `"EVEN_MORE"` |
 | `marginBelow` | Text | `"NONE"`, `"EVEN_LESS"`, `"LESS"`, `"STANDARD"` (default), `"MORE"`, `"EVEN_MORE"` |
 
-### a!radioButtonField Details
+### a!radioButtonField / a!checkboxField Details
+
+Both take the same choice parameters. `a!checkboxField` and `a!multipleDropdownField` hold a **list** in `value`; `a!radioButtonField` and `a!dropdownField` hold a single value.
 
 | Parameter | Type | Description |
 |---|---|---|
-| `choiceLabels` | List of Text | Display labels for each option |
-| `choiceValues` | List | Values corresponding to each label |
+| `choiceLabels` | List | Display labels for each option. **Always required, including when `data` is set** (use a record field reference, or `fv!data[...]` to combine fields) |
+| `choiceValues` | List | Values corresponding to each label. **Always required, including when `data` is set** (use a record field reference — usually the primary key) |
+| `data` | Record Type / `a!recordData()` | Records-powered data source. Does **NOT** replace `choiceValues`/`choiceLabels`. Supported on `a!dropdownField`, `a!multipleDropdownField`, `a!checkboxField`, `a!radioButtonField` |
+| `sort` | List of Sort Info | Sort order for records-powered choices. Use `"choiceLabels"` or `"choiceValues"` as the `a!sortInfo()` field |
 | `choiceLayout` | Text | `"HORIZONTAL"` (default), `"STACKED"` |
-| `value` | Any Type | Currently selected value |
+| `value` | Any Type | Currently selected value(s) |
 | `saveInto` | Save | Target for saving selected value |
 
 ### Other Input Components
@@ -440,6 +444,32 @@ Rich text color values: `"STANDARD"`, `"ACCENT"`, `"POSITIVE"`, `"NEGATIVE"`, `"
 | `a!userRecordLink()` | Link to a user record | `label`, `user`, `showWhen` |
 | `a!reportLink()` | Link to a report | `label`, `report`, `showWhen` |
 | `a!newsEntryLink()` | Link to a news entry | `label`, `newsEntry`, `showWhen` |
+
+## Record Action Components
+
+Use these to surface configured record actions (LIST_ACTION / RELATED_ACTION) on an interface. Configuring an action on the record type does **not** make it appear — related actions shown outside a record view (e.g., grid rows), and list actions on custom grids, must be placed explicitly. See `references/record-types.md` for configuration and `references/appian-workflow-patterns.md` ("Surfacing Record Actions on Interfaces") for when to use each placement.
+
+### a!recordActionField
+
+| Parameter | Type | Description |
+|---|---|---|
+| `actions` | Any Type | List of record action items to display, configured with `a!recordActionItem()` |
+| `style` | Text | How the actions are displayed. Valid: `"TOOLBAR"` (default), `"LINKS"`, `"CARDS"`, `"SIDEBAR"`, `"CALL_TO_ACTION"`, `"MENU"`, `"MENU_ICON"`, `"TOOLBAR_PRIMARY"`, `"SIDEBAR_PRIMARY"` |
+| `display` | Text | How each action label is displayed. Valid: `"LABEL_AND_ICON"` (default), `"LABEL"`, `"ICON"` |
+| `openActionsIn` | Text | How actions open. Valid: `"DIALOG"` (default), `"NEW_TAB"`, `"SAME_TAB"`. Does not apply to Appian Mobile |
+| `align` | Text | Alignment of the action(s). Valid: `"START"`, `"CENTER"`, `"END"` |
+| `accessibilityText` | Text | Additional text announced by screen readers; no visible change |
+| `showWhen` | Boolean | Controls visibility. When `false`, hidden and not evaluated. Default: `true` |
+| `securityOnDemand` | Boolean | When security is evaluated for `"MENU"`/`"MENU_ICON"` styles. Default `true` = on click; `false` = on interface load |
+
+### a!recordActionItem
+
+| Parameter | Type | Description |
+|---|---|---|
+| `action` | Record Action Reference | A record action reference via the `recordType!` domain, e.g., `recordType!{uuid}Case.actions.editCase`. Uses the display name, process model, icon, context, and visibility set in the record type's action config |
+| `identifier` | Any Type | The record's identifier (typically the primary key value) — **required when `action` references a related action**. For composite primary keys, provide all key field values. Not needed for a record list action |
+
+> On a custom `a!gridField()`, list actions and related actions are surfaced via the grid's `recordActions` parameter (which also takes `a!recordActionItem()` items) — see `references/sail.md`.
 
 ## Wizard Components
 

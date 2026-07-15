@@ -377,7 +377,7 @@ Goal: Query Case with related Status fields
 ### Record actions
 - `contextExpr` keys must match process model parameter names (case-sensitive)
 - `icon` is a Font Awesome hex code (e.g., `"f044"`), not a name (not `"pencil"`)
-- RELATED_ACTIONs only surface on record views, not on custom `a!gridField` grids
+- Configuring an action does NOT place it in the UI. On a record view, related actions are surfaced via `relatedActionShortcuts` (or `a!recordActionField()`); the auto-generated related-actions tab is hidden via `hideRelatedActionsView: true` in modern apps. On custom `a!gridField()` grids, neither LIST_ACTIONs nor RELATED_ACTIONs auto-surface — wire them via the grid's `recordActions` parameter or `a!recordActionField()`. See `references/appian-workflow-patterns.md`
 
 ### Record events
 - `configureRecordEvents` returns 409 if already configured — check with `getRecordEventsConfig` first
@@ -385,8 +385,9 @@ Goal: Query Case with related Status fields
 - Events can only be written via Write Records node in process models — not via `a!writeRecords()`
 
 ### testInterface and testRule
-- `testInterface` renders the interface and returns the component tree + any `diagnostics.error` entries
-- Use it to catch runtime errors that expression validation misses (bad record references, type mismatches)
+- `testInterface` renders the interface with the inputs you provide and returns the component tree + any `diagnostics.error` entries
+- Use it to catch runtime errors that creation-time evaluation misses. `createInterface`/`updateInterface` parse and design-check the whole expression, but only **evaluate** the branches active under the default inputs (null unless `testInputs` were stored). A runtime error (e.g., a component missing a required parameter) inside an inactive branch — like an `isUpdate = true` form path — passes creation and surfaces only at runtime.
+- **After creating/updating an interface with conditional rendering (`isUpdate` flags, `showWhen`/`if()` sections, components fed by `ri!record`), call `testInterface` with inputs that render each otherwise-inactive branch** and check `diagnostics.error`. See `references/validation-checkpoint.md`.
 - `testRule` (type: `EXPRESSION_RULE` or `INTEGRATION`) executes with provided inputs and returns the result
 
 ### validateDesignObject vs validateExpression

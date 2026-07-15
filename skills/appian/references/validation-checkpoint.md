@@ -95,6 +95,39 @@ Interfaces that accept rule inputs (e.g., `ri!caseId`, `ri!orderId`) will fail `
 
 ---
 
+## What createInterface / updateInterface Validate (and the Evaluation Blind Spot)
+
+The `createInterface` and `updateInterface` MCP tools run three layers of validation. The first two cover the **entire** expression; the third does not.
+
+1. **Parse** — parses the expression, catching syntax errors (unbalanced delimiters, malformed keywords) **anywhere** in the expression.
+2. **Design guidance** — runs Appian's built-in design checks for issues like invalid keywords and non-existent functions, across the **whole** expression. In Appian's human UI these are only warnings; for agents the MCP tools are stricter and treat them as blocking. **Exception:** an interface may have pre-existing design warnings, so `updateInterface` blocks only when the change introduces **new** warnings.
+3. **Evaluation** — actually evaluates the expression. By default the rule inputs are **null**, but you can pass `testInputs`, which are **stored as the interface's default inputs** (this is how you create an interface that is intentionally designed to error on null input). Evaluation catches runtime issues (null handling, type mismatches, **missing required parameters**, etc.) — **but only for the parts of the expression that are active under the inputs used.**
+
+**The blind spot:** because evaluation only exercises the active branches, a runtime error that would occur *every single time* a branch renders — e.g., a component missing a required parameter — is **not caught** if that branch is inactive under the default inputs. Parse and design guidance won't catch it either (it's a valid-looking, existing component). It passes creation cleanly, then fails the first time a user triggers that branch.
+
+**Common branches that stay inactive under default (null) inputs:**
+- **Create vs. update forms** — one interface driven by an `isUpdate` flag; with null inputs only one branch (or neither) renders.
+- **`showWhen` / `if()` gated sections** — shown only when a status, role, or record value is set.
+- **Editable-mode toggles** — sections that switch to input components only when an "edit" flag is true.
+- **Components fed by a record input** — a grid/dropdown whose data depends on `ri!record` being populated.
+
+**Required follow-up: `testInterface` to exercise the inactive branches.**
+
+After creating an interface with conditional rendering, call `testInterface` with inputs chosen to render the branches that the default inputs do **not** exercise, and inspect `diagnostics.error`:
+
+```
+Interface with `ri!isUpdate` (Boolean) and `ri!record`, default testInputs null:
+  Creation evaluated the isUpdate=false path only.
+  → testInterface(inputs: { isUpdate: true, record: <sample> })  exercises the update path.
+  Check diagnostics.error (and the component tree) for that combination.
+```
+
+Repeat for each combination needed to cover every conditionally-rendered branch. An interface whose entire tree already renders under the default inputs needs no follow-up.
+
+See SKILL.md **Step 7D** for where this fits in the workflow, and `references/tools-mcp.md` for `testInterface` mechanics.
+
+---
+
 ## Validation Workflow
 
 ### Step 1: Generate SAIL Code
@@ -426,3 +459,4 @@ This checkpoint is **Step 7B** in the overall workflow:
 - Retry loop is client-side logic (not built into the tool)
 - Validation is **syntax and structure only** — it doesn't verify business logic correctness
 - Use `testRule` or `testInterface` for runtime/integration testing (separate step after creation)
+- For interfaces with conditional rendering, `testInterface` after creation is **not optional** — creation only evaluates branches active under the default inputs. See "What createInterface / updateInterface Validate (and the Evaluation Blind Spot)" above.

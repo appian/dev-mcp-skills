@@ -248,7 +248,18 @@ The process model needs a parameter named `record` typed to the record type's `t
 - **RELATED_ACTION** (delete): restrict to admins or record owner
 - Always set `contextExpr` on RELATED_ACTION to pass the record into the process model
 - The `key` must be unique within the record type and is used in SAIL references
-- RELATED_ACTIONs auto-surface only on record views, NOT on custom `a!gridField` grids. When adding a RELATED_ACTION (e.g., Edit), also update any dashboard interface that displays that record type in a custom grid — add `recordActions` to the grid or a link column using `a!recordActionField()` to surface the action on each row.
+
+### Surfacing Actions After Configuration
+
+**Configuring an action does NOT make it appear to users — you must also place it where users can reach it.** How depends on the action type and where records are shown:
+
+- **LIST_ACTION** (create): auto-appears on Appian's built-in record list, but that list is rarely used. On a custom `a!gridField()`, wire it via the grid's `recordActions` parameter.
+- **RELATED_ACTION** on a **record view** (Summary View): usually surfaced via the view's `relatedActionShortcuts` (most common), or `a!recordActionField()` for precise positioning on complex interfaces. (The auto-generated related-actions tab is hidden in modern apps via `hideRelatedActionsView: true`.)
+- **RELATED_ACTION** on a **custom grid** or anywhere **outside a record view**: does NOT auto-surface — wire it via the grid's `recordActions` parameter or `a!recordActionField()`.
+
+⚠️ After adding a RELATED_ACTION (e.g., Edit), also update any dashboard/interface that displays that record type in a custom grid, or the action will be invisible there.
+
+See `references/appian-workflow-patterns.md` ("Surfacing Record Actions on Interfaces") for the full decision guide and examples.
 
 ## User Filters
 

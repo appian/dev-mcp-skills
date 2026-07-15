@@ -38,7 +38,7 @@ Functions I will use:
 
 **Command to run:**
 ```bash
-grep -A 20 "Functions That DO NOT Exist" /Users/jupiter.munoz/repo/composer/skills/skills/appian/references/function-reference.md | head -30
+grep -A 20 "Functions That DO NOT Exist" references/function-reference.md | head -30
 ```
 
 **You MUST:**
@@ -123,7 +123,7 @@ Components I will use:
 **Command to run:**
 ```bash
 # Check all your components at once:
-grep -E '"a!(formLayout|textField|dropdownField|buttonWidget|pickerFieldUsers)"' /Users/jupiter.munoz/repo/composer/skills/skills/appian/registry/components-registry.json | head -20
+grep -E '"a!(formLayout|textField|dropdownField|buttonWidget|pickerFieldUsers)"' registry/components-registry.json | head -20
 ```
 
 **You MUST:**
@@ -136,11 +136,11 @@ grep -E '"a!(formLayout|textField|dropdownField|buttonWidget|pickerFieldUsers)"'
 **Command to run:**
 ```bash
 # Check which of your components have instruction files:
-jq -r '.["a!formLayout"].instructionFile // "none", .["a!textField"].instructionFile // "none", .["a!dropdownField"].instructionFile // "none", .["a!pickerFieldUsers"].instructionFile // "none"' /Users/jupiter.munoz/repo/composer/skills/skills/appian/registry/components-registry.json
+jq -r '.["a!formLayout"].instructionFile // "none", .["a!textField"].instructionFile // "none", .["a!dropdownField"].instructionFile // "none", .["a!pickerFieldUsers"].instructionFile // "none"' registry/components-registry.json
 ```
 
 **For each component with an instruction file path:**
-- Load the file: `Read /Users/jupiter.munoz/repo/composer/skills/skills/appian/[path]`
+- Load the file: `Read [path]` (relative to the skill root)
 - Note any critical warnings
 
 **Common critical warnings to watch for:**
@@ -215,8 +215,9 @@ a!sectionLayout:
 
 a!dropdownField:
   - label
-  - choiceLabels
-  - choiceValues
+  - choiceLabels (REQUIRED even when using data param)
+  - choiceValues (REQUIRED even when using data param)
+  - data (optional record-type source; does NOT replace choiceLabels/choiceValues)
   - value
   - saveInto
   - disabled (NOT readOnly - doesn't exist)
@@ -227,7 +228,7 @@ a!dropdownField:
 **Command to run:**
 ```bash
 # Check for critical warnings on your components:
-jq -r 'to_entries[] | select(.value.criticalWarnings != null) | "\(.key): \(.value.criticalWarnings | join("; "))"' /Users/jupiter.munoz/repo/composer/skills/skills/appian/registry/components-registry.json | grep -E "(formLayout|sectionLayout|dropdownField|checkboxField)"
+jq -r 'to_entries[] | select(.value.criticalWarnings != null) | "\(.key): \(.value.criticalWarnings | join("; "))"' registry/components-registry.json | grep -E "(formLayout|sectionLayout|dropdownField|checkboxField)"
 ```
 
 **You MUST:**
@@ -258,10 +259,10 @@ jq -r 'to_entries[] | select(.value.criticalWarnings != null) | "\(.key): \(.val
 **Command to quickly check component-reference.md:**
 ```bash
 # Example: Check if titleBar exists for a!formLayout
-grep -A 20 "^### a!formLayout$" /Users/jupiter.munoz/repo/composer/skills/skills/appian/references/component-reference.md | grep -E "^\| \`titleBar\`"
+grep -A 20 "^### a!formLayout$" references/component-reference.md | grep -E "^\| \`titleBar\`"
 
 # Example: Check if label exists for a!formLayout (should return nothing)
-grep -A 20 "^### a!formLayout$" /Users/jupiter.munoz/repo/composer/skills/skills/appian/references/component-reference.md | grep -E "^\| \`label\`"
+grep -A 20 "^### a!formLayout$" references/component-reference.md | grep -E "^\| \`label\`"
 ```
 
 ### 4. Output Required Verification Artifacts [MANDATORY]
@@ -374,11 +375,10 @@ Before generating code, complete this summary:
 - **Tier 2B:** Registry + functions.json for component existence (145 components)
 - **Tier 3:** Documentation search for patterns/recipes (optional, when Tier 1/2 insufficient)
 
-**Path to files:**
-- Skill root: `/Users/jupiter.munoz/.claude/skills/appian/`
-- References: `/Users/jupiter.munoz/.claude/skills/appian/references/`
-- Registry: `/Users/jupiter.munoz/.claude/skills/appian/registry/components-registry.json`
-- Component instructions: `/Users/jupiter.munoz/.claude/skills/appian/components/` and `layouts/`
+**Path to files** (all relative to the skill root):
+- References: `references/`
+- Registry: `registry/components-registry.json`
+- Component instructions: `components/` and `layouts/`
 
 ---
 

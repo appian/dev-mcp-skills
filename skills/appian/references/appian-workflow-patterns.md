@@ -135,6 +135,64 @@ a!formLayout(
 
 ---
 
+## Surfacing Record Actions on Interfaces
+
+**Configuring a record action on a record type is only half the job — the action will not appear to users until it is placed where they can reach it.** After creating a `LIST_ACTION` or `RELATED_ACTION` (see `references/record-types.md`), you must surface it on the appropriate interface(s). How you do this depends on the action type and where records are being displayed.
+
+### List actions
+
+`LIST_ACTION`s are **not tied to a specific record** — they are most often used for **Create** operations ("New Case", "New Order").
+
+- List actions automatically appear above Appian's **built-in record list**. However, the built-in record list is now **rarely used** — most modern applications display lists of records with a custom `a!gridField()` on a Dashboard or landing page instead.
+- **On a custom `a!gridField()`, list actions do NOT appear automatically.** They must be surfaced explicitly with the grid's `recordActions` parameter, or users will never see them.
+
+```
+a!gridField(
+  label: "Cases",
+  data: a!recordData(recordType: 'recordType!{rtUuid}Case'),
+  columns: { ... },
+  recordActions: {
+    a!recordActionItem(action: 'recordType!{rtUuid}Case.actions.{createCaseKey}')
+  }
+)
+```
+
+### Related actions
+
+`RELATED_ACTION`s operate on a **specific record** (Edit, Delete, Approve, status transitions). On a **record view** (Summary View), there are **three** ways a related action can appear:
+
+1. **Automatic related-actions view (tab).** If the record type's `hideRelatedActionsView` is set to `false`, Appian generates a separate tab listing all related actions. **Modern applications almost always set `hideRelatedActionsView: true`** — the separate tab is a clumsy UX and is generally avoided.
+
+2. **Related action shortcut on the view** (`relatedActionShortcuts`). This is the **most common** way to configure related actions on a record view — the action is surfaced as a shortcut on the view itself, no SAIL required.
+
+3. **Explicit `a!recordActionField()` in the interface.** On record views this is used mainly on **complex interfaces**, to position a related action **immediately next to the page content it relates to** (rather than in a shortcut bar). Reserve it for that purpose on views — prefer shortcuts (#2) for standard placement.
+
+```
+a!recordActionField(
+  actions: {
+    a!recordActionItem(
+      action: 'recordType!{rtUuid}Case.actions.{editCaseKey}',
+      /* identifier is REQUIRED for related actions — the record's primary key.
+         On a record view use rv!record[...id]; in a grid row use fv!row[...id]. */
+      identifier: rv!record['recordType!{rtUuid}Case.fields.{idUuid}id']
+    )
+  }
+)
+```
+
+### Related actions outside a record view
+
+When records are shown **outside a record view** — most notably **grid rows** on a Dashboard or landing page — related actions **do NOT appear automatically**. You must surface them explicitly, either via:
+
+- the grid's `recordActions` parameter (renders as an action on the grid), or
+- `a!recordActionField()` placed in a column or elsewhere in the interface.
+
+**Rule of thumb:** if you configure a `RELATED_ACTION` and expect users to reach it from a custom grid, you must wire it up — it will not surface on its own.
+
+> See `references/component-reference.md` for `a!recordActionField()` / `a!recordActionItem()` signatures, and `references/sail.md` for grid `recordActions` examples.
+
+---
+
 ## Common Anti-Patterns
 
 ### ANTI-PATTERN #1: Using Form for "Details" Pages
@@ -297,6 +355,7 @@ Before creating an interface, answer these questions:
 ## Related References
 
 - **For interface creation workflow:** `references/interfaces.md`
+- **For configuring record actions (LIST_ACTION / RELATED_ACTION):** `references/record-types.md`
 - **For Summary View patterns:** `references/record-summary-views.md`
 - **For UI patterns (KPIs, grids, sections):** `references/ui-patterns.md`
 - **For form save patterns:** `references/write-records-patterns.md`

@@ -133,6 +133,16 @@ These constants are required for security expressions in interfaces, sites, reco
 
 ---
 
+## Reverse Workflow: Finding an Application for an Existing Object
+
+**When:** You have a design object uuid (expression rule, interface, constant, record type) but don't know which application it belongs to.
+
+**Call `getObjectDependents(objectUuid)`**:
+   - Returns the owning application UUID in the `dependents` array
+   - Filter for `type === "APPLICATION"` and extract `uuid`
+
+---
+
 ## Confirmation Patterns
 
 This section covers application-specific patterns for when to ask users for confirmation versus when to automatically complete mandatory steps. Always load `references/confirmation-patterns.md` for universal workflows.

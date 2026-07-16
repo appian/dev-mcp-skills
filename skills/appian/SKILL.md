@@ -164,6 +164,7 @@ Load the relevant reference(s) for your task:
 | Querying record types with filters, sorting, relationships, aggregations (KPIs), or paging | `references/query-record-type-patterns.md` |
 | Using date/time filtering, arithmetic, or comparisons in queries or expressions. Requirements mention: dates, times, today(), now(), date ranges, past/future dates, intervals | `references/date-time-patterns.md` |
 | Creating or managing an application | `references/applications.md` |
+| Naming conventions for objects | Load reference files relevant to the object type, such as: `references/interfaces.md`, `references/expression-rules.md`, `references/supporting-objects.md`, `references/sites.md`, `references/process-models.md`, `references/record-types.md`, or `references/data-modeling.md` (NOTE: some object types do not have naming conventions) |
 | Creating/modifying record types, fields, relationships, views, or actions | `references/record-types.md` |
 | Requirements mention filtering, searching, faceted navigation, or record list dropdowns | `references/record-type-user-filters.md` |
 | Understanding interface types, workflows (Dashboard → Summary View → Form), and when to use each type (MANDATORY before creating any interface) | `references/appian-workflow-patterns.md` |
@@ -613,7 +614,7 @@ These are real errors that occur when MCP tools are called without loading refer
 **❌ Wrong naming conventions:**
 - Symptom: 404 errors, convention violations, failed validations
 - Cause: Used `statusName` instead of `name` for lookup tables, or `customerId` as primary key instead of `id`
-- Prevention: Load `references/data-modeling.md` (documents naming rules)
+- Prevention: Load the file corresponding to the object type mentioned in the Resource Reference Map section
 
 **❌ Fabricating UUIDs:**
 - Symptom: Silent failures, 404 Not Found, data corruption

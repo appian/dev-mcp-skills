@@ -124,8 +124,8 @@ Creates a from/to date picker that filters records within a date window.
   "name": "Submitted Date",
   "facetType": "DATE_RANGE",
   "sourceRef": "<field-uuid>",
-  "startDateExpression": "=today() - 30",
-  "endDateExpression": "=today()"
+  "startDateExpression": "today() - 30",
+  "endDateExpression": "today()"
 }
 ```
 
@@ -141,7 +141,7 @@ Fully custom filter using SAIL. You define both the options shown to users and t
 {
   "name": "Priority Level",
   "facetType": "EXPRESSION",
-  "expression": "=a!recordFilterList(name: \"Priority Level\", options: {...})"
+  "expression": "a!recordFilterList(name: \"Priority Level\", options: {...})"
 }
 ```
 
@@ -184,7 +184,7 @@ a!recordFilterList(
 {
   "name": "Status Group",
   "facetType": "EXPRESSION",
-  "expression": "=a!recordFilterList(name: \"Status\", options: {a!recordFilterListOption(id: 1, name: \"Open\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Submission.fields.{fid}status', operator: \"in\", value: {\"New\", \"In Progress\", \"Under Review\"})), a!recordFilterListOption(id: 2, name: \"Closed\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Submission.fields.{fid}status', operator: \"in\", value: {\"Approved\", \"Rejected\", \"Cancelled\"}))})"
+  "expression": "a!recordFilterList(name: \"Status\", options: {a!recordFilterListOption(id: 1, name: \"Open\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Submission.fields.{fid}status', operator: \"in\", value: {\"New\", \"In Progress\", \"Under Review\"})), a!recordFilterListOption(id: 2, name: \"Closed\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Submission.fields.{fid}status', operator: \"in\", value: {\"Approved\", \"Rejected\", \"Cancelled\"}))})"
 }
 ```
 
@@ -193,7 +193,7 @@ a!recordFilterList(
 {
   "name": "Amount Range",
   "facetType": "EXPRESSION",
-  "expression": "=a!recordFilterList(name: \"Amount\", options: {a!recordFilterListOption(id: 1, name: \"Under $1,000\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Order.fields.{fid}amount', operator: \"<\", value: 1000)), a!recordFilterListOption(id: 2, name: \"$1,000 - $10,000\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Order.fields.{fid}amount', operator: \"between\", value: {1000, 10000})), a!recordFilterListOption(id: 3, name: \"Over $10,000\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Order.fields.{fid}amount', operator: \">\", value: 10000))})"
+  "expression": "a!recordFilterList(name: \"Amount\", options: {a!recordFilterListOption(id: 1, name: \"Under $1,000\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Order.fields.{fid}amount', operator: \"<\", value: 1000)), a!recordFilterListOption(id: 2, name: \"$1,000 - $10,000\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Order.fields.{fid}amount', operator: \"between\", value: {1000, 10000})), a!recordFilterListOption(id: 3, name: \"Over $10,000\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Order.fields.{fid}amount', operator: \">\", value: 10000))})"
 }
 ```
 
@@ -202,7 +202,7 @@ a!recordFilterList(
 {
   "name": "Active Status",
   "facetType": "EXPRESSION",
-  "expression": "=a!recordFilterList(name: \"Active\", options: {a!recordFilterListOption(id: 1, name: \"Active\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Employee.fields.{fid}isActive', operator: \"=\", value: true)), a!recordFilterListOption(id: 2, name: \"Inactive\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Employee.fields.{fid}isActive', operator: \"=\", value: false))})"
+  "expression": "a!recordFilterList(name: \"Active\", options: {a!recordFilterListOption(id: 1, name: \"Active\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Employee.fields.{fid}isActive', operator: \"\", value: true)), a!recordFilterListOption(id: 2, name: \"Inactive\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Employee.fields.{fid}isActive', operator: \"\", value: false))})"
 }
 ```
 

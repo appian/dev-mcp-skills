@@ -10,7 +10,7 @@
     {"name": "firstName", "type": "Text", "description": "Person's first name"},
     {"name": "lastName", "type": "Text", "description": "Person's last name"}
   ],
-  "expression": "=ri!firstName & \" \" & ri!lastName"
+  "expression": "ri!firstName & \" \" & ri!lastName"
 }
 ```
 
@@ -81,7 +81,6 @@ Callable from: interfaces, other expression rules, process model script tasks, X
 
 - **Plain-text record type names in expressions** — always use UUID-qualified format
 - **Mismatched `ri!` names** — references must exactly match input names (typo = runtime error)
-- **Forgetting the `=` prefix** — without it, expression is treated as literal text
 - **Updating inputs without updating expression** — renamed inputs break `ri!` references
 - **Circular references** — A calls B, B calls A = runtime error
 - **Not using application prefix** — rules without prefix collide in shared environments

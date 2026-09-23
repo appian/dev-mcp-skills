@@ -202,7 +202,7 @@ a!recordFilterList(
 {
   "name": "Active Status",
   "facetType": "EXPRESSION",
-  "expression": "a!recordFilterList(name: \"Active\", options: {a!recordFilterListOption(id: 1, name: \"Active\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Employee.fields.{fid}isActive', operator: \"\", value: true)), a!recordFilterListOption(id: 2, name: \"Inactive\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Employee.fields.{fid}isActive', operator: \"\", value: false))})"
+  "expression": "a!recordFilterList(name: \"Active\", options: {a!recordFilterListOption(id: 1, name: \"Active\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Employee.fields.{fid}isActive', operator: \"=\", value: true)), a!recordFilterListOption(id: 2, name: \"Inactive\", filter: a!queryFilter(field: 'recordType!{rt-uuid}Employee.fields.{fid}isActive', operator: \"=\", value: false))})"
 }
 ```
 

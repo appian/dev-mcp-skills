@@ -571,7 +571,7 @@ Do NOT use `selectionStyle: "NONE"` — not a valid value. Valid values: `"CHECK
 
 ### 7. Site Page Visibility
 
-Standard visibility expressions work as expected. Use `"true"` or `"=true"` for always-visible pages. For conditional visibility, use expressions like `a!isUserMemberOfGroup(loggedInUser(), cons!GROUP_NAME)`.
+Standard visibility expressions work as expected. Use `"true"` for always-visible pages. For conditional visibility, use expressions like `a!isUserMemberOfGroup(loggedInUser(), cons!GROUP_NAME)`.
 
 ### 8. headerContentLayout Header Slot
 

@@ -143,8 +143,8 @@ Record actions are process-model-backed operations surfaced in the record list (
   "processModelUuid": "<pm-uuid>",
   "actionType": "RELATED_ACTION",
   "key": "editSubmission",
-  "visibilityExpr": "=loggedInUser() = rv!record['recordType!{rt-uuid}Submission.fields.{fid}submittedByUsername']",
-  "contextExpr": "={record: rv!record}",
+  "visibilityExpr": "loggedInUser() = rv!record['recordType!{rt-uuid}Submission.fields.{fid}submittedByUsername']",
+  "contextExpr": "{record: rv!record}",
   "icon": "f044",
   "dialogWidth": "MEDIUM_PLUS"
 }
@@ -171,16 +171,16 @@ Record actions are process-model-backed operations surfaced in the record list (
 
 ### Visibility Expressions
 
-Control who sees the action. Omitting `visibilityExpr` or setting `"=true()"` makes the action visible to all users.
+Control who sees the action. Omitting `visibilityExpr` or setting `"true()"` makes the action visible to all users.
 
 **Owner-only (record owner can edit):**
 ```
-"visibilityExpr": "=loggedInUser() = rv!record['recordType!{rt-uuid}Entity.fields.{fid}createdByUsername']"
+"visibilityExpr": "loggedInUser() = rv!record['recordType!{rt-uuid}Entity.fields.{fid}createdByUsername']"
 ```
 
 **Group-restricted (only admins):**
 ```
-"visibilityExpr": "=a!isUserMemberOfGroup(loggedInUser(), cons!MY_ADMIN_GROUP)"
+"visibilityExpr": "a!isUserMemberOfGroup(loggedInUser(), cons!MY_ADMIN_GROUP)"
 ```
 
 **Status-conditional (only when open):**
@@ -198,7 +198,7 @@ Control who sees the action. Omitting `visibilityExpr` or setting `"=true()"` ma
 For RELATED_ACTION, `contextExpr` passes the record into the process model. The keys in the dictionary must match process parameter names (case-sensitive):
 
 ```
-"contextExpr": "={record: rv!record}"
+"contextExpr": "{record: rv!record}"
 ```
 
 The process model needs a parameter named `record` typed to the record type's `typeReference`.
@@ -223,8 +223,8 @@ The process model needs a parameter named `record` typed to the record type's `t
   "processModelUuid": "<update-pm-uuid>",
   "actionType": "RELATED_ACTION",
   "key": "editSubmission",
-  "contextExpr": "={record: rv!record}",
-  "visibilityExpr": "=loggedInUser() = rv!record['recordType!{rt-uuid}Submission.fields.{fid}submittedByUsername']",
+  "contextExpr": "{record: rv!record}",
+  "visibilityExpr": "loggedInUser() = rv!record['recordType!{rt-uuid}Submission.fields.{fid}submittedByUsername']",
   "icon": "f044"
 }
 ```
@@ -236,7 +236,7 @@ The process model needs a parameter named `record` typed to the record type's `t
   "processModelUuid": "<delete-pm-uuid>",
   "actionType": "RELATED_ACTION",
   "key": "deleteSubmission",
-  "visibilityExpr": "=a!isUserMemberOfGroup(loggedInUser(), cons!MY_ADMIN_GROUP)",
+  "visibilityExpr": "a!isUserMemberOfGroup(loggedInUser(), cons!MY_ADMIN_GROUP)",
   "icon": "f1f8"
 }
 ```

@@ -149,7 +149,7 @@ XOR (`core.4`) uses the `decision` field for conditional branching:
   "coordinates": [450, 200], "connections": [4, 5],
   "decision": {
     "conditions": [
-      {"expression": "=pv!cancel", "targetNodeId": 5}
+      {"expression": "pv!cancel", "targetNodeId": 5}
     ],
     "defaultPath": 4
   }
@@ -167,8 +167,8 @@ Script Task (`internal.16`) — schema returns empty inputs/outputs, use `data.o
   "assignment": {"attended": false},
   "data": {
     "outputs": [
-      {"expression": "=\"Open\"", "saveInto": "pv!status"},
-      {"expression": "=today()", "saveInto": "pv!createdDate"}
+      {"expression": "\"Open\"", "saveInto": "pv!status"},
+      {"expression": "today()", "saveInto": "pv!createdDate"}
     ]
   }
 }
@@ -203,7 +203,7 @@ Write Records (`internal3.write_records_to_source_23r3`) — inputs discovered v
   "assignment": {"attended": false},
   "data": {
     "inputs": [
-      {"name": "Records", "expression": "={pv!employee}"},
+      {"name": "Records", "expression": "{pv!employee}"},
       {"name": "Version", "value": 6},
       {"name": "CaptureEvents", "value": false}
     ]
@@ -271,7 +271,7 @@ Start(1) → Script(2) → UserInput(3) → WriteRecords(4) → End(5)
       "id": 3, "type": "core.4", "name": "Was Cancelled?",
       "coordinates": [450, 200], "connections": [4, 5],
       "decision": {
-        "conditions": [{"expression": "=pv!cancel", "targetNodeId": 5}],
+        "conditions": [{"expression": "pv!cancel", "targetNodeId": 5}],
         "defaultPath": 4
       }
     },
@@ -281,7 +281,7 @@ Start(1) → Script(2) → UserInput(3) → WriteRecords(4) → End(5)
       "assignment": {"attended": false},
       "data": {
         "inputs": [
-          {"name": "Records", "expression": "={pv!employee}"},
+          {"name": "Records", "expression": "{pv!employee}"},
           {"name": "Version", "value": 6},
           {"name": "CaptureEvents", "value": false}
         ]

@@ -166,12 +166,12 @@ Events are written via the **Write Records** smart service node (`internal3.writ
       "assignment": {"attended": false},
       "data": {
         "inputs": [
-          {"name": "Records", "expression": "={pv!record}"},
+          {"name": "Records", "expression": "{pv!record}"},
           {"name": "Version", "value": 6},
-          {"name": "RecordType", "expression": "='recordType!{rt-uuid}Order'"},
+          {"name": "RecordType", "expression": "'recordType!{rt-uuid}Order'"},
           {"name": "CaptureEvents", "value": true},
           {"name": "EventType", "value": 4},
-          {"name": "AutomationType", "expression": "=a!automationId(\"NONE\")"}
+          {"name": "AutomationType", "expression": "a!automationId(\"NONE\")"}
         ],
         "outputs": [
           {"name": "RecordsUpdated", "saveInto": "pv!updatedRecord"}
@@ -195,7 +195,7 @@ Event type IDs are stored in the Event Type Lookup record type. To find them:
 Use an expression for `CaptureEvents` to conditionally write events:
 
 ```json
-{"name": "CaptureEvents", "expression": "=pv!isNewRecord"}
+{"name": "CaptureEvents", "expression": "pv!isNewRecord"}
 ```
 
 ---

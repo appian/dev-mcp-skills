@@ -50,7 +50,7 @@ This reference provides architectural guidance for expression rules: management 
 <a name="writing-expressions"></a>
 ## Writing Expressions
 
-Expression rule bodies must start with `=`. Within expressions (like in `a!localVariables()`, interface component properties, or process model script tasks), the `=` is NOT used — assignments use colon syntax: `local!name: value` or `paramName: value`. Expressions are strongly typed and follow function-call syntax: `functionName(param1, param2)`.
+Within expressions (like in `a!localVariables()`, interface component properties, or process model script tasks), assignments use colon syntax: `local!name: value` or `paramName: value`. Expressions are strongly typed and follow function-call syntax: `functionName(param1, param2)`.
 
 ### Operators
 
@@ -1341,7 +1341,6 @@ What would you like to do? (1/2/3)
 
 - **Mismatched `ri!` names** — `ri!` names must exactly match the defined rule input or interface input name. Typo in input name or reference causes runtime error. Define: `firstName`, reference: `ri!fistName` → error
 
-- **Missing `=` prefix in expression rule body** — Expression rules must start with `=`. Without it, the expression body is treated as literal text. Note: Within expressions (like `a!localVariables()`), the `=` is NOT used for assignments — `local!fullName: ri!firstName & " " & ri!lastName` is correct (no `=` prefix)
 
 - **Using wrong reference prefix** — Each context has specific prefixes: `ri!` for rule inputs, `pv!` for process variables, `rv!` for record variables, `fv!` for function variables. Using `ri!` in process model → error, should be `pv!`
 

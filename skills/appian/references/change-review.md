@@ -228,7 +228,7 @@ If any check fails: identify the root cause from the rendered component tree, fi
 
 After creating a site, GET it back and verify:
 - Each page has a valid `targetUuid` (retrieve the interface to confirm it exists)
-- Each `visibilityExpr` is a valid expression (e.g., `"true"`, `"=true"`, or a group membership check)
+- Each `visibilityExpr` is a valid expression (e.g., `"true"`, `"false"`, or a group membership check)
 
 ### Process Model Checks
 

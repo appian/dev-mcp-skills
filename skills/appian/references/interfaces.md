@@ -11,7 +11,7 @@
     {"name": "isUpdate", "type": "Boolean"},
     {"name": "cancel", "type": "Boolean"}
   ],
-  "expression": "=a!formLayout(titleBar: if(ri!isUpdate, \"Edit Case\", \"New Case\"), ...)"
+  "expression": "a!formLayout(titleBar: if(ri!isUpdate, \"Edit Case\", \"New Case\"), ...)"
 }
 ```
 
